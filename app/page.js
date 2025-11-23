@@ -1,5 +1,5 @@
 export default function Page() {
   return (
-    <div>Hey KM....</div>
+ <div className="text-9xl">Hey KM....</div>
   );
 }
