@@ -2,6 +2,7 @@ import AboutSection from "@/components/Home/AboutSection";
 import EmpowerSection from "@/components/Home/EmpowerSection";
 import GuidesInsights from "@/components/Home/GuidesInsights";
 import HeroBanner from "@/components/Home/HeroBanner";
+import Footer from "@/components/Shared/Footer";
 
 export default function Page() {
   return (
@@ -10,6 +11,7 @@ export default function Page() {
       <AboutSection />
       <GuidesInsights />
       <EmpowerSection />
+      <Footer />
     </div>
   );
 }
