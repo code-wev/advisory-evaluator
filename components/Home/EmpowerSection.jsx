@@ -24,7 +24,7 @@ export default function EmpowerSection() {
           
           {/* Primary Button */}
           <Link
-            href="/find-advisor"
+            href=""
             className="bg-[#0B3A6F] text-white text-[14px] px-6 py-2.5 rounded-full 
                        font-medium flex items-center gap-2 hover:bg-[#092d54] transition"
           >

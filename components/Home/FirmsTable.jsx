@@ -59,7 +59,7 @@ export default function FirmsTable({ firms = [] }) {
 
                   {/* DETAILS BUTTON */}
                   <Link
-                    href={`/advisors/${firm.id}`}
+                    href={``}
                     className="px-[14px] py-[6px] rounded-[6px] border border-[#D3D7DE] text-[13px] text-[#444] hover:bg-[#F0F2F5] transition"
                   >
                     Details

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "bcrypt": "^6.0.0",
     "framer-motion": "^12.23.24",
     "leaflet": "^1.9.4",
