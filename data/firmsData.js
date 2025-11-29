@@ -9,7 +9,7 @@ export const firmsData = [
     avgClientBalance: "5.2 M",
     keyService: "Advisory Services Offered",
     averageFee: "1.05%",
-    logo: "/icons/company1.png"
+    logo: "/avatar.jpg"
   },
   {
     id: "summit-equity",
@@ -19,7 +19,7 @@ export const firmsData = [
     avgClientBalance: "7.4 M",
     keyService: "Retirement Planning",
     averageFee: "1.05%",
-    logo: "/icons/company2.png"
+    logo: "/avatar.jpg"
   },
   {
     id: "pinnacle-partners",
@@ -29,7 +29,7 @@ export const firmsData = [
     avgClientBalance: "9.0 M",
     keyService: "Advisory Services Offered",
     averageFee: "1.05%",
-    logo: "/icons/company3.png"
+    logo: "/avatar.jpg"
   },
   {
     id: "atlas-holdings",
@@ -39,7 +39,7 @@ export const firmsData = [
     avgClientBalance: "10.5 M",
     keyService: "Retirement Planning",
     averageFee: "1.05%",
-    logo: "/icons/company4.png"
+    logo: "/avatar.jpg"
   },
   {
     id: "horizon-ventures",
@@ -49,7 +49,7 @@ export const firmsData = [
     avgClientBalance: "11.8 M",
     keyService: "Advisory Services Offered",
     averageFee: "1.05%",
-    logo: "/icons/company5.png"
+    logo: "/avatar.jpg"
   },
   {
     id: "vertex-investments",
@@ -59,7 +59,7 @@ export const firmsData = [
     avgClientBalance: "6.1 M",
     keyService: "Retirement Planning",
     averageFee: "1.05%",
-    logo: "/icons/company6.png"
+    logo: "/avatar.jpg"
   },
   {
     id: "nexus-advisory",
@@ -69,6 +69,6 @@ export const firmsData = [
     avgClientBalance: "8.3 M",
     keyService: "Retirement Planning",
     averageFee: "1.05%",
-    logo: "/icons/company7.png"
+    logo: "/avatar.jpg"
   }
 ];
