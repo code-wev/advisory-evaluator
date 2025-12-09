@@ -63,7 +63,7 @@ export default function GuidesInsights() {
                 </p>
 
                 <Link
-                  href={`/${card.slug}`}
+                  href={`/blog/${card.slug}`}
                   className="text-[#0B3A6F] text-[14px] font-medium hover:underline mt-auto"
                 >
                   Read more

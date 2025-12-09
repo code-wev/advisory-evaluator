@@ -6,7 +6,6 @@ import Image from "next/image";
 export default function FirmsTable({ firms = [] }) {
   return (
     <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow-[0_2px_6px_rgba(0,0,0,0.04)] overflow-hidden">
-
       {/* TABLE */}
       <table className="w-full text-[14px] font-normal">
         <thead>
@@ -14,8 +13,12 @@ export default function FirmsTable({ firms = [] }) {
             <th className="px-5 py-3 text-left font-medium">Company Name</th>
             <th className="px-5 py-3 text-left font-medium">City / State</th>
             <th className="px-5 py-3 text-left font-medium">Firm size</th>
-            <th className="px-5 py-3 text-left font-medium">Avg Client Balance</th>
-            <th className="px-5 py-3 text-left font-medium">Key Service Focus</th>
+            <th className="px-5 py-3 text-left font-medium">
+              Avg Client Balance
+            </th>
+            <th className="px-5 py-3 text-left font-medium">
+              Key Service Focus
+            </th>
             <th className="px-5 py-3 text-left font-medium">Average Fee</th>
             <th className="px-5 py-3 text-left font-medium">Action</th>
           </tr>
@@ -48,7 +51,6 @@ export default function FirmsTable({ firms = [] }) {
               {/* ACTION BUTTONS */}
               <td className="px-5 py-4">
                 <div className="flex items-center gap-3">
-
                   {/* SAVE FIRM BUTTON — EXACT COLOR #0F4C81 */}
                   <button
                     className="px-[14px] py-[6px] rounded-[6px] text-white text-[13px] font-semibold shadow-sm"
@@ -59,12 +61,11 @@ export default function FirmsTable({ firms = [] }) {
 
                   {/* DETAILS BUTTON */}
                   <Link
-                    href={``}
+                    href={`/advisors/${firm.crd}`}
                     className="px-[14px] py-[6px] rounded-[6px] border border-[#D3D7DE] text-[13px] text-[#444] hover:bg-[#F0F2F5] transition"
                   >
                     Details
                   </Link>
-
                 </div>
               </td>
             </tr>
