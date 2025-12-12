@@ -1,3 +1,4 @@
+// app/advisors/[crd]/page.js
 "use client";
 
 import { useParams } from "next/navigation";
@@ -8,13 +9,13 @@ export default function AdvisorDetails() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ------------------- FETCH FIRM DATA -------------------
   useEffect(() => {
-    if (!crd) {
-      return <p className="p-6 text-lg">Loading firm ID...</p>;
-    }
+    if (!crd) return; // wait until param is ready
 
     async function fetchFirm() {
       try {
+        setLoading(true);
         const res = await fetch("/api/firm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -22,10 +23,12 @@ export default function AdvisorDetails() {
         });
 
         const json = await res.json();
+        console.log("FULL API RESPONSE ===>", json);
         setData(json);
-        setLoading(false);
       } catch (error) {
-        console.error(error);
+        console.error("Error loading firm:", error);
+        setData(null);
+      } finally {
         setLoading(false);
       }
     }
@@ -33,45 +36,84 @@ export default function AdvisorDetails() {
     fetchFirm();
   }, [crd]);
 
-  if (loading) {
-    return <p className="p-6 text-lg">Loading...</p>;
-  }
-
-  if (!data || Object.keys(data).length === 0 || !data.filing) {
+  // ------------------- LOADING STATE -------------------
+  if (loading || !crd) {
     return (
-      <p className="p-6 text-lg text-red-600">
-        No firm data found for CRD {crd}.
-      </p>
+      <div className="flex flex-col items-center justify-center h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#0F4C81]" />
+        <p className="mt-4 text-gray-700 text-lg font-medium">
+          Loading, please wait...
+        </p>
+      </div>
     );
   }
 
+  // ------------------- NO DATA STATE -------------------
+  if (!data || !data.filing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
+        <h2 className="text-2xl font-semibold text-gray-800">
+          Unable to Load Firm Data
+        </h2>
+
+        <p className="mt-2 text-gray-600 max-w-md">
+          We couldn&apos;t retrieve firm information for CRD{" "}
+          <span className="font-medium">{crd}</span>. This may be a temporary
+          issue or a connection problem. Please try refreshing the page.
+        </p>
+
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-5 px-5 py-2.5 bg-[#0F4C81] text-white rounded-lg shadow-md hover:bg-[#0d3f6a] transition-all"
+        >
+          Refresh &amp; Try Again
+        </button>
+
+        <p className="text-xs text-gray-400 mt-3">
+          If the issue continues, please try again later.
+        </p>
+      </div>
+    );
+  }
+
+  // ======================================================
+  //                     DATA MAPPING
+  // ======================================================
   const filing = data.filing;
   const info = filing.Info || {};
   const addr = filing.MainAddr || {};
-  const part1A = filing.FormInfo?.Part1A || {};
-  const item1 = part1A.Item1 || {};
-  const item3A = part1A.Item3A || {};
-  const item3B = part1A.Item3B || {};
-  const item3C = part1A.Item3C || {};
-  const item5A = part1A.Item5A || {};
-  const item5B = part1A.Item5B || {};
-  const item5C = part1A.Item5C || {};
-  const item5E = part1A.Item5E || {};
-  const item5F = part1A.Item5F || {};
-  const item5G = part1A.Item5G || {};
-  const item5H = part1A.Item5H || {};
-  const item9F = part1A.Item9F || {};
+  const formPart1A = filing.FormInfo?.Part1A || {};
+  const part1A = data.part1A || {}; // from /part-1a/{crd}
+
+  // Old style Part1A sub-items (from Firm endpoint)
+  const item1 = formPart1A.Item1 || {};
+  const item3A = formPart1A.Item3A || {};
+  const item3B = formPart1A.Item3B || {};
+  const item3C = formPart1A.Item3C || {};
+  const item5A = formPart1A.Item5A || {};
+  const item5B = formPart1A.Item5B || {};
+  const item5C = formPart1A.Item5C || {};
+  const item5D = formPart1A.Item5D || {};
+  const item5E = formPart1A.Item5E || {};
+  const item5F = formPart1A.Item5F || {};
+  const item5G = formPart1A.Item5G || {};
+  const item5H = formPart1A.Item5H || {};
   const filingDate = filing.Filing?.[0]?.Dt || "";
 
+  // Schedules
   const directOwners = data.scheduleA || [];
   const indirectOwners = data.scheduleB || [];
   const otherNames = data.otherBusinessNames || [];
-  const smaCustodians = data.separatelyManagedAccounts || [];
-  const affiliations = data.financialIndustryAffiliations || [];
+  const sma = data.separatelyManagedAccounts || {};
+  const custodians = sma["3-custodiansForSeparatelyManagedAccounts"] || []; // D.5.K
+  const financialAffiliations = data.financialIndustryAffiliations || [];
   const privateFunds = data.privateFunds || [];
-  const brochures = data.brochures || [];
 
-  // Small helpers
+  // Brochures shape: { brochures: [ ... ] }
+  const brochureObj = data.brochures || {};
+  const brochureList = brochureObj.brochures || [];
+
+  // ------------------- Helpers -------------------
   const fullAddress = [addr.Strt1, addr.City, addr.State, addr.PostlCd]
     .filter(Boolean)
     .join(", ");
@@ -81,11 +123,47 @@ export default function AdvisorDetails() {
 
   const firmSizeLabel =
     item5F.Q5F2C && item5F.Q5F2C > 0
-      ? `$${item5F.Q5F2C.toLocaleString()} AUM`
-      : "Not reported";
+      ? `$${Number(item5F.Q5F2C).toLocaleString()} AUM`
+      : "Less than $25 million (Small)";
 
-  const registrationType = "Registered Advisory Firm"; // can refine with SEC vs State if needed
+  const registrationType = "SEC Registered Advisory Firm";
 
+  // Try to pull client type details from Part 1A endpoint if available
+  const clientTypes = part1A["5f-typesOfClients"] || {};
+  const individuals = clientTypes.individuals || {};
+  const hnwIndividuals = clientTypes.highNetWorthIndividuals || {};
+
+  const individualsCount =
+    individuals.numberOfClients ?? part1A["5f-individualsClients"];
+  const individualsAum =
+    individuals.regulatoryAum ?? part1A["5f-individualsAum"];
+
+  const hnwCount =
+    hnwIndividuals.numberOfClients ??
+    part1A["5f-highNetWorthIndividualsClients"];
+  const hnwAum =
+    hnwIndividuals.regulatoryAum ?? part1A["5f-highNetWorthIndividualsAum"];
+
+  const nonDiscAum =
+    part1A["5d-amountOfRegulatoryAssetsUnderManagement"]?.nonDiscretionary
+      ?.regulatoryAum ?? item5F.Q5F2E;
+
+  // SLOA / Standing Letter of Instruction (best-effort)
+  const hasSLOA =
+    part1A["9g-hasStandingLettersOfAuthorization"] === true ||
+    part1A["9g-sloa"] === true;
+
+  // Small formatting helper
+  const formatMoney = (v) => {
+    if (v === undefined || v === null || v === "" || isNaN(Number(v))) {
+      return "Not reported";
+    }
+    return `$${Number(v).toLocaleString()}`;
+  };
+
+  // ======================================================
+  //                        UI
+  // ======================================================
   return (
     <div className="max-w-6xl mx-auto px-6 md:px-10 py-10 md:py-12">
       {/* ================================================== */}
@@ -112,7 +190,9 @@ export default function AdvisorDetails() {
             <p className="font-semibold text-gray-800">{filingDate}</p>
           </div>
           <div>
-            <p className="text-gray-500">Firm Size (AUM)</p>
+            <p className="text-gray-500">
+              Firm Size by Assets Under Management
+            </p>
             <p className="font-semibold text-gray-800">{firmSizeLabel}</p>
           </div>
         </div>
@@ -124,7 +204,7 @@ export default function AdvisorDetails() {
               href={mainWebsite}
               target="_blank"
               rel="noreferrer"
-              className="text-[#0F4C81] underline"
+              className="text-[#0F4C81] underline break-all"
             >
               {mainWebsite}
             </a>
@@ -145,7 +225,10 @@ export default function AdvisorDetails() {
             <Row label="Organization Type" value={item3A.OrgFormNm} />
             <Row label="Fiscal Year End" value={item3B?.Q3B} />
             <Row label="Country of Organization" value={item3C?.CntryNm} />
-            <Row label="Number of Other Offices" value={item1.Q1F5 ?? "0"} />
+            <Row
+              label="Alternate Offices (DBA or Branches)"
+              value={item1.Q1F5 ?? "0"}
+            />
             <Row
               label="Umbrella Registration"
               value={info.UmbrRgstn === "Y" ? "Yes" : "No"}
@@ -186,8 +269,7 @@ export default function AdvisorDetails() {
           <ul className="list-disc pl-5 space-y-1 text-sm">
             {otherNames.map((n, idx) => (
               <li key={idx}>
-                {/* Adjust these keys after you inspect schedule-d-1-b response */}
-                {n["1a-businessName"] || JSON.stringify(n)}
+                {n["1a-businessName"] || n.businessName || JSON.stringify(n)}
               </li>
             ))}
           </ul>
@@ -202,24 +284,16 @@ export default function AdvisorDetails() {
       <CardSection title="Staff Breakdown">
         <MiniRow label="Total Advisory Staff" value={item5A.TtlEmp} />
         <MiniRow
-          label="Staff performing Investment Advisory Functions"
+          label="Staff performing Investment Advisory Functions including Research"
           value={item5B.Q5B1}
         />
         <MiniRow
-          label="Registered Representatives of Broker Dealers"
-          value={item5B.Q5B2}
-        />
-        <MiniRow
-          label="Registered with State Securities Authorities"
+          label="Staff Registered with State Securities Authorities"
           value={item5B.Q5B3}
         />
         <MiniRow
-          label="Licensed agents of Insurance Companies"
+          label="Staff Licensed as Insurance Agents"
           value={item5B.Q5B5}
-        />
-        <MiniRow
-          label="Other firms / persons soliciting clients"
-          value={item5B.Q5B6}
         />
         <p className="text-[12px] text-gray-500 mt-2">
           (Some staff may perform multiple roles.)
@@ -229,27 +303,25 @@ export default function AdvisorDetails() {
       {/* ================================================== */}
       {/*                  CLIENT INFORMATION               */}
       {/* ================================================== */}
-      <CardSection title="Client Type & Accounts">
+      <CardSection title="Client & Account Summary">
         <MiniRow
-          label="Approx. number of clients (all types)"
-          value={item5C.Q5C1}
+          label="Total Regulatory Assets Under Management"
+          value={formatMoney(item5F.Q5F2C)}
         />
-        <MiniRow label="Percentage of non-U.S. clients" value={item5C.Q5C2} />
+
+        <MiniRow label="Total Accounts Managed" value={item5F.Q5F2D} />
+
         <MiniRow
-          label="Clients in financial planning services (last year)"
-          value={item5H.Q5H}
+          label="Discretionary Assets"
+          value={formatMoney(item5F.Q5F2A)}
         />
-        <MiniRow label="Discretionary accounts (count)" value={item5F.Q5F2D} />
+
         <MiniRow
-          label="Non-discretionary accounts (count)"
-          value={item5F.Q5F2E}
+          label="Non-Discretionary Assets"
+          value={formatMoney(item5F.Q5F2B)}
         />
-        <MiniRow label="Total accounts managed" value={item5F.Q5F2F} />
-        <MiniRow
-          label="Regulatory Assets Under Management (USD)"
-          value={item5F.Q5F2C}
-        />
-        <MiniRow label="Non-U.S. AUM (approx.)" value={item5F.Q5F3} />
+
+        <MiniRow label="Approximate Number of Clients" value={item5D.Q5DA2} />
       </CardSection>
 
       {/* ================================================== */}
@@ -258,11 +330,11 @@ export default function AdvisorDetails() {
       <CardSection title="Compensation Agreements">
         <BulletList>
           {item5E.Q5E1 === "Y" && (
-            <li>Percentage of assets under management</li>
+            <li>Takes percentage of assets under management</li>
           )}
-          {item5E.Q5E2 === "Y" && <li>Hourly charges</li>}
+          {item5E.Q5E2 === "Y" && <li>Charges hourly</li>}
+          {item5E.Q5E4 === "Y" && <li>Fixed fees</li>}
           {item5E.Q5E3 === "Y" && <li>Subscription fees</li>}
-          {item5E.Q5E4 === "Y" && <li>Fixed fees (non-subscription)</li>}
           {item5E.Q5E5 === "Y" && <li>Commissions</li>}
           {item5E.Q5E6 === "Y" && <li>Performance-based fees</li>}
           {item5E.Q5E7 === "Y" && <li>Other compensation arrangements</li>}
@@ -277,30 +349,19 @@ export default function AdvisorDetails() {
       {/* ================================================== */}
       <CardSection title="Advisory Services Offered">
         <BulletList>
-          {item5G.Q5G1 === "Y" && <li>Financial planning services</li>}
+          {item5G.Q5G1 === "Y" && <li>Financial Planning Services</li>}
           {item5G.Q5G2 === "Y" && (
-            <li>Portfolio management for individuals / small businesses</li>
-          )}
-          {item5G.Q5G3 === "Y" && (
-            <li>Portfolio management for investment companies</li>
-          )}
-          {item5G.Q5G4 === "Y" && (
             <li>
-              Portfolio management for pooled investment vehicles (non-IC)
+              Portfolio Management for Individuals and/or Small Businesses
             </li>
           )}
           {item5G.Q5G5 === "Y" && (
-            <li>Portfolio management for businesses / institutional clients</li>
+            <li>Portfolio Management for Businesses / Institutions</li>
           )}
-          {item5G.Q5G6 === "Y" && <li>Pension consulting services</li>}
-          {item5G.Q5G7 === "Y" && <li>Selection of other advisers</li>}
-          {item5G.Q5G8 === "Y" && (
-            <li>Publication of periodicals or newsletters</li>
-          )}
-          {item5G.Q5G9 === "Y" && <li>Security ratings or pricing services</li>}
-          {item5G.Q5G10 === "Y" && <li>Market timing services</li>}
-          {item5G.Q5G11 === "Y" && <li>Educational seminars or workshops</li>}
-          {item5G.Q5G12 === "Y" && <li>Other advisory services</li>}
+          {item5G.Q5G6 === "Y" && <li>Pension Consulting Services</li>}
+          {item5G.Q5G7 === "Y" && <li>Selection of Other Advisers</li>}
+          {item5G.Q5G11 === "Y" && <li>Educational Seminars or Workshops</li>}
+          {item5G.Q5G12 === "Y" && <li>Other Advisory Services</li>}
           {noYes(item5G) && (
             <li className="text-gray-500">
               No advisory services marked as provided.
@@ -312,33 +373,57 @@ export default function AdvisorDetails() {
       {/* ================================================== */}
       {/*                     OWNERSHIP                     */}
       {/* ================================================== */}
-      <CardSection title="Direct Owners (Schedule A)">
+      <CardSection title="Direct Owners">
         {Array.isArray(directOwners) && directOwners.length > 0 ? (
-          <ul className="space-y-2 text-sm">
-            {directOwners.map((owner, idx) => (
-              <li
-                key={idx}
-                className="border-b border-gray-200 pb-2 last:border-b-0"
-              >
-                {/* TODO: adjust keys after inspecting schedule-a-direct-owners JSON */}
-                <div className="font-semibold">
-                  {owner["ownerName"] || owner["Name"] || `Owner #${idx + 1}`}
-                </div>
-                <div className="text-gray-600 text-xs mt-1">
-                  {owner["title"] && `Title: ${owner["title"]}`}
-                </div>
-                <div className="text-gray-600 text-xs">
-                  {owner["ownerType"] && `Owner Type: ${owner["ownerType"]}`}
-                </div>
-              </li>
-            ))}
+          <ul className="space-y-3 text-sm">
+            {directOwners.map((owner, idx) => {
+              const name = owner.name || owner.ownerName || `Owner #${idx + 1}`;
+              const ownerType = owner.ownerType || "Not reported";
+              const title =
+                owner.titleStatus || owner.title || owner.position || null;
+              const acquired = owner.dateTitleStatusAcquired || null;
+              const ownershipCode = owner.ownershipCode || null;
+
+              return (
+                <li
+                  key={idx}
+                  className="border-b border-gray-200 pb-3 last:border-b-0"
+                >
+                  <div className="font-semibold text-gray-900 text-base">
+                    {name}
+                  </div>
+                  {title && (
+                    <div className="text-gray-700 text-xs mt-1">
+                      <span className="font-medium">Title: </span>
+                      {title}
+                    </div>
+                  )}
+                  <div className="text-gray-600 text-xs">
+                    <span className="font-medium">Owner Type: </span>
+                    {ownerType}
+                  </div>
+                  {ownershipCode && (
+                    <div className="text-gray-600 text-xs">
+                      <span className="font-medium">Ownership Code: </span>
+                      {ownershipCode}
+                    </div>
+                  )}
+                  {acquired && (
+                    <div className="text-gray-600 text-xs">
+                      <span className="font-medium">Acquired: </span>
+                      {acquired}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-sm text-gray-600">No direct owners reported.</p>
         )}
       </CardSection>
 
-      <CardSection title="Indirect Owners (Schedule B)">
+      <CardSection title="Indirect Owners">
         {Array.isArray(indirectOwners) && indirectOwners.length > 0 ? (
           <ul className="space-y-2 text-sm">
             {indirectOwners.map((owner, idx) => (
@@ -346,17 +431,17 @@ export default function AdvisorDetails() {
                 key={idx}
                 className="border-b border-gray-200 pb-2 last:border-b-0"
               >
-                {/* TODO: adjust keys after inspecting schedule-b-indirect-owners JSON */}
                 <div className="font-semibold">
-                  {owner["ownerName"] ||
-                    owner["Name"] ||
+                  {owner.name ||
+                    owner.ownerName ||
+                    owner["1a-organizationName"] ||
                     `Indirect Owner #${idx + 1}`}
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">No indirect owners reported.</p>
+          <p className="text-sm text-gray-600">None reported.</p>
         )}
       </CardSection>
 
@@ -364,27 +449,32 @@ export default function AdvisorDetails() {
       {/*         CUSTODIANS / SMA (Schedule D 5.K)         */}
       {/* ================================================== */}
       <CardSection title="Custodians for Separately Managed Accounts">
-        {Array.isArray(smaCustodians) && smaCustodians.length > 0 ? (
+        {Array.isArray(custodians) && custodians.length > 0 ? (
           <ul className="space-y-2 text-sm">
-            {smaCustodians.map((c, idx) => (
-              <li
-                key={idx}
-                className="border-b border-gray-200 pb-2 last:border-b-0"
-              >
-                {/* TODO: adjust keys after inspecting schedule-d-5-k JSON */}
-                <div className="font-semibold">
-                  {c["custodianName"] || c["25b-legalName"] || "Custodian"}
-                </div>
-                <div className="text-xs text-gray-600">
-                  {c["25d-location"]?.city &&
-                    `${c["25d-location"].city}${
-                      c["25d-location"].state
-                        ? ", " + c["25d-location"].state
-                        : ""
-                    }`}
-                </div>
-              </li>
-            ))}
+            {custodians.map((c, idx) => {
+              const name =
+                c["1a-custodianName"] ||
+                c["custodianName"] ||
+                c["25b-legalName"] ||
+                `Custodian #${idx + 1}`;
+              const loc = c["25d-location"] || c.location || {};
+              const cityState =
+                loc.city && loc.state
+                  ? `${loc.city}, ${loc.state}`
+                  : loc.city || loc.state || "";
+
+              return (
+                <li
+                  key={idx}
+                  className="border-b border-gray-200 pb-2 last:border-b-0"
+                >
+                  <div className="font-semibold">{name}</div>
+                  {cityState && (
+                    <div className="text-xs text-gray-600">{cityState}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-sm text-gray-600">
@@ -396,7 +486,7 @@ export default function AdvisorDetails() {
       {/* ================================================== */}
       {/*                   PRIVATE FUNDS                   */}
       {/* ================================================== */}
-      <CardSection title="Private Funds (Schedule D 7.B.1)">
+      <CardSection title="Private Funds (Schedule D.7.B)">
         {Array.isArray(privateFunds) && privateFunds.length > 0 ? (
           <ul className="space-y-2 text-sm">
             {privateFunds.map((fund, idx) => (
@@ -404,24 +494,26 @@ export default function AdvisorDetails() {
                 key={idx}
                 className="border-b border-gray-200 pb-2 last:border-b-0"
               >
-                {/* Based on example from docs you pasted */}
                 <div className="font-semibold">
                   {fund["1a-nameOfFund"] || `Fund #${idx + 1}`}
                 </div>
                 <div className="text-xs text-gray-600">
-                  Type: {fund["10-typeOfFund"]?.selectedTypes?.join(", ")}
+                  Type:{" "}
+                  {fund["10-typeOfFund"]?.selectedTypes?.join(", ") ||
+                    "Not reported"}
                 </div>
                 <div className="text-xs text-gray-600">
                   Gross Asset Value:{" "}
                   {fund["11-grossAssetValue"]?.toLocaleString?.() ??
-                    fund["11-grossAssetValue"]}
+                    fund["11-grossAssetValue"] ??
+                    "Not reported"}
                 </div>
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-sm text-gray-600">
-            No private funds reported in Schedule D 7.B.1.
+            No private funds reported in Schedule D.7.B.
           </p>
         )}
       </CardSection>
@@ -430,14 +522,18 @@ export default function AdvisorDetails() {
       {/*                     BROCHURES                     */}
       {/* ================================================== */}
       <CardSection title="Brochures (Part 2)">
-        {Array.isArray(brochures) && brochures.length > 0 ? (
+        {Array.isArray(brochureList) && brochureList.length > 0 ? (
           <ul className="space-y-2 text-sm">
-            {brochures.map((b, idx) => (
-              <li key={idx}>
-                {/* TODO: adjust keys after inspecting brochures/<crd> JSON */}
+            {brochureList.map((b, idx) => (
+              <li key={b.versionId || idx}>
                 <span className="font-semibold">
-                  {b.title || b.name || `Brochure #${idx + 1}`}
+                  {b.name || b.title || `Brochure #${idx + 1}`}
                 </span>
+                {b.dateSubmitted && (
+                  <span className="text-xs text-gray-500 ml-1">
+                    ({b.dateSubmitted})
+                  </span>
+                )}
                 {b.url && (
                   <>
                     {" — "}
@@ -463,12 +559,20 @@ export default function AdvisorDetails() {
       {/*                    DISCLOSURES                    */}
       {/* ================================================== */}
       <CardSection title="Disclosures">
-        {/* These come from Item11 + Part1B.DsclrQstns */}
         <p className="text-sm text-gray-700">
-          Based on ADV Part 1A & 1B (Item 11 and related questions), this firm
-          reported <span className="font-semibold">no disciplinary events</span>{" "}
-          in the latest filing.
+          Based on ADV Part 1A &amp; 1B, this firm reported{" "}
+          <span className="font-semibold">no criminal disclosures</span> in the
+          latest filing.
         </p>
+
+        <div className="mt-4">
+          <h3 className="font-semibold text-sm mb-1">
+            Standing Letter of Instruction (SLOA)
+          </h3>
+          <p className="text-sm text-gray-700">
+            {hasSLOA ? "Standing instructions reported." : "No SLOA reported."}
+          </p>
+        </div>
       </CardSection>
     </div>
   );

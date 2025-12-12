@@ -15,17 +15,19 @@ export async function POST(req) {
     const apiKey = process.env.SEC_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "SEC_API_KEY is not set in environment" },
+        { error: "SEC_API_KEY is not configured" },
         { status: 500 }
       );
     }
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: apiKey, // or `Token ${apiKey}` if your account requires that
+      Authorization: apiKey
     };
 
-    // ---------- 1) MAIN ADV FIRM FILING ----------
+    const baseUrl = "https://api.sec-api.io/form-adv";
+
+    // BODY for ADV firm
     const firmBody = {
       query: `Info.FirmCrdNb:${crd}`,
       from: 0,
@@ -33,23 +35,30 @@ export async function POST(req) {
       sort: [{ "Info.FirmCrdNb": { order: "desc" } }],
     };
 
-    const baseUrl = "https://api.sec-api.io/form-adv";
+    // --------------------------
+    // FETCH ALL 10 ENDPOINTS 🤝
+    // --------------------------
 
     const [
       firmRes,
+      part1ARes,
       scheduleARes,
       scheduleBRes,
       schedD1BRes,
       schedD5KRes,
       schedD7ARes,
       schedD7BRes,
-      brochureRes,
+      brochureRes
     ] = await Promise.all([
       fetch(`${baseUrl}/firm`, {
         method: "POST",
         headers,
         body: JSON.stringify(firmBody),
       }),
+
+      // ⭐ NEW IMPORTANT ENDPOINT ⭐
+      fetch(`${baseUrl}/part-1a/${crd}?token=${apiKey}`),
+
       fetch(`${baseUrl}/schedule-a-direct-owners/${crd}?token=${apiKey}`),
       fetch(`${baseUrl}/schedule-b-indirect-owners/${crd}?token=${apiKey}`),
       fetch(`${baseUrl}/schedule-d-1-b/${crd}?token=${apiKey}`),
@@ -59,54 +68,76 @@ export async function POST(req) {
       fetch(`${baseUrl}/brochures/${crd}?token=${apiKey}`),
     ]);
 
+    // -------------------------
+    // PARSE MAIN FILING DATA
+    // -------------------------
     if (!firmRes.ok) {
-      const err = await firmRes.text();
       return NextResponse.json(
-        { error: "Firm ADV fetch failed", details: err },
+        { error: "Failed to fetch ADV firm record" },
         { status: 500 }
       );
     }
 
     const firmJson = await firmRes.json();
-    const filing = firmJson.filings?.[0] || null;
+    const filing = firmJson?.filings?.[0] || null;
 
-    const [scheduleA, scheduleB, schedD1B, schedD5K, schedD7A, schedD7B, brochures] =
-      await Promise.all([
-        safeJson(scheduleARes),
-        safeJson(scheduleBRes),
-        safeJson(schedD1BRes),
-        safeJson(schedD5KRes),
-        safeJson(schedD7ARes),
-        safeJson(schedD7BRes),
-        safeJson(brochureRes),
-      ]);
+    // -------------------------
+    // PARSE SUB-ENDPOINTS SAFE
+    // -------------------------
+    const [
+      part1A,
+      scheduleA,
+      scheduleB,
+      schedD1B,
+      schedD5K,
+      schedD7A,
+      schedD7B,
+      brochures
+    ] = await Promise.all([
+      safeJson(part1ARes),
+      safeJson(scheduleARes),
+      safeJson(scheduleBRes),
+      safeJson(schedD1BRes),
+      safeJson(schedD5KRes),
+      safeJson(schedD7ARes),
+      safeJson(schedD7BRes),
+      safeJson(brochureRes),
+    ]);
 
+    // -------------------------
+    // RETURN FULL DATA PACKAGE
+    // -------------------------
     return NextResponse.json({
       filing,
+      part1A: part1A || {},
+
       scheduleA: scheduleA || [],
       scheduleB: scheduleB || [],
+
       otherBusinessNames: schedD1B || [],
       separatelyManagedAccounts: schedD5K || [],
       financialIndustryAffiliations: schedD7A || [],
       privateFunds: schedD7B || [],
+
       brochures: brochures || [],
     });
+
   } catch (error) {
     console.error("Error in /api/firm:", error);
     return NextResponse.json(
-      { error: error.message || "Unknown server error" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }
 }
 
-// helper to safely parse JSON from schedule endpoints
+// Safe JSON parser
 async function safeJson(res) {
   try {
     if (!res || !res.ok) return null;
     return await res.json();
   } catch (e) {
-    console.error("Error parsing schedule JSON", e);
+    console.error("JSON parse error:", e);
     return null;
   }
 }
