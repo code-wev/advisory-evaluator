@@ -1,38 +1,62 @@
-import { firmsData } from "@/data/firmsData";
+import { NextResponse } from "next/server";
+
+function buildFeeLabel(item5E = {}) {
+  const fees = [];
+
+  if (item5E.Q5E1 === "Y") fees.push("AUM-based");
+  if (item5E.Q5E2 === "Y") fees.push("Hourly");
+  if (item5E.Q5E3 === "Y") fees.push("Subscription");
+  if (item5E.Q5E4 === "Y") fees.push("Fixed");
+  if (item5E.Q5E5 === "Y") fees.push("Commission");
+  if (item5E.Q5E6 === "Y") fees.push("Performance-based");
+
+  return fees.length ? fees.join(", ") : "Not disclosed";
+}
 
 export async function GET(req) {
-  const { searchParams } = new URL(req.url);
-  const location = searchParams.get("location");
+  try {
+    const { searchParams } = new URL(req.url);
+    const location = searchParams.get("location") || "";
 
-  if (!location) {
-    return Response.json(
-      { error: "Location required" },
-      { status: 400 }
-    );
-  }
+    const apiKey = process.env.SEC_API_KEY;
 
-  // Convert to lowercase for clean matching
-  const query = location.toLowerCase();
+    const query = `
+      MainAddr.State:${location.toUpperCase()} 
+      OR MainAddr.City:"${location.toUpperCase()}" 
+      OR MainAddr.PostlCd:${location}
+    `;
 
-  // Filter by location from cityState string
-  const results = firmsData.filter((firm) =>
-    firm.cityState.toLowerCase().includes(query)
-  );
-
-  // If no matches found
-  if (results.length === 0) {
-    return Response.json({
-      source: "dummy-data",
-      count: 0,
-      firms: [],
-      message: "No matching firms found for this location."
+    const response = await fetch("https://api.sec-api.io/form-adv/firm", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: apiKey,
+      },
+      body: JSON.stringify({
+        query,
+        size: 20,
+      }),
     });
-  }
 
-  // Successful response
-  return Response.json({
-    source: "dummy-data",
-    count: results.length,
-    firms: results,
-  });
+    const json = await response.json();
+    const filings = json.filings || [];
+
+    const firms = filings.map((item) => ({
+      crd: item.Info?.FirmCrdNb,
+      name: item.Info?.LegalNm || "Unknown Firm",
+      cityState: `${item.MainAddr?.City || ""}, ${item.MainAddr?.State || ""}`,
+      firmSize: item.FormInfo?.Part1A?.Item5F?.Q5F2C || "N/A",
+      avgClientBalance: item.FormInfo?.Part1A?.Item5F?.Q5F2A || "N/A",
+      keyService:
+        item.FormInfo?.Part1A?.Item5G?.Q5G1 === "Y"
+          ? "Financial Planning"
+          : "Advisory Services",
+      averageFee: buildFeeLabel(item.FormInfo?.Part1A?.Item5E),
+      logo: "/avatar.png",
+    }));
+
+    return NextResponse.json({ firms });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
