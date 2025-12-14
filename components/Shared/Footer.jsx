@@ -11,13 +11,8 @@ export default function Footer() {
         {/* LEFT SECTION */}
         <div className="w-full md:w-[40%]">
           <div className="flex items-center gap-2 mb-4">
-            <Image
-              src="/footer-logo.png"
-              width={28}
-              height={28}
-              alt="Footer Logo"
-            />
-            <span className="text-[16px] font-medium">Advisory evaluator</span>
+          
+            <span className="text-[22px] font-medium">Advisory evaluator</span>
           </div>
 
           <p className="text-[14px] leading-[1.7] text-white/80 max-w-xs">
