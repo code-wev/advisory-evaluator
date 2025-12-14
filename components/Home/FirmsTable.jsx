@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -13,18 +13,28 @@ export default function FirmsTable({ firms = [] }) {
   const [loadingSave, setLoadingSave] = useState(null);
 
   /* -----------------------------------------
-     LOAD SAVED FIRMS ON PAGE LOAD
+     NORMALIZE FIRMS (🔥 FIX DUPLICATES)
+  ------------------------------------------ */
+  const uniqueFirms = useMemo(() => {
+    return Array.from(new Map((firms || []).map((f) => [f.crd, f])).values());
+  }, [firms]);
+
+  /* -----------------------------------------
+     LOAD SAVED FIRMS (🔥 FIX DOUBLE LOAD)
   ------------------------------------------ */
   useEffect(() => {
     if (!session) return;
+
+    let isMounted = true;
 
     async function loadSavedFirms() {
       try {
         const res = await fetch("/api/firm/saved");
         const data = await res.json();
 
-        if (res.ok) {
-          setSavedFirms(data.savedFirms || []);
+        if (res.ok && isMounted) {
+          const uniqueSaved = Array.from(new Set(data.savedFirms || []));
+          setSavedFirms(uniqueSaved);
         }
       } catch (err) {
         console.error("Failed to load saved firms");
@@ -32,10 +42,14 @@ export default function FirmsTable({ firms = [] }) {
     }
 
     loadSavedFirms();
+
+    return () => {
+      isMounted = false;
+    };
   }, [session]);
 
   /* -----------------------------------------
-     SAVE / UNSAVE HANDLER (FIXED)
+     SAVE / UNSAVE HANDLER (🔥 RACE SAFE)
   ------------------------------------------ */
   const handleSaveFirm = async (firm) => {
     if (!session) {
@@ -49,10 +63,9 @@ export default function FirmsTable({ firms = [] }) {
     try {
       setLoadingSave(firm.crd);
 
-      toast.loading(
-        isCurrentlySaved ? "Removing firm..." : "Saving firm...",
-        { id: toastId }
-      );
+      toast.loading(isCurrentlySaved ? "Removing firm..." : "Saving firm...", {
+        id: toastId,
+      });
 
       const res = await fetch("/api/firm/save", {
         method: "POST",
@@ -67,12 +80,13 @@ export default function FirmsTable({ firms = [] }) {
         return;
       }
 
-      // 🔥 TRUST UI STATE, NOT API MESSAGE
       if (isCurrentlySaved) {
         setSavedFirms((prev) => prev.filter((id) => id !== firm.crd));
         toast.success("Firm removed from saved list", { id: toastId });
       } else {
-        setSavedFirms((prev) => [...prev, firm.crd]);
+        setSavedFirms((prev) =>
+          prev.includes(firm.crd) ? prev : [...prev, firm.crd]
+        );
         toast.success("Firm saved successfully", { id: toastId });
       }
     } catch (error) {
@@ -98,46 +112,45 @@ export default function FirmsTable({ firms = [] }) {
   };
 
   /* -----------------------------------------
-     EMPTY STATE
+     EMPTY STATE (UNCHANGED)
   ------------------------------------------ */
-if (!firms || firms.length === 0) {
-  return (
-    <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow-sm flex items-center justify-center py-24 px-6">
-      <div className="text-center max-w-lg">
-        <h2 className="text-[20px] font-semibold text-[#111827]">
-          No firms available
-        </h2>
+  if (!uniqueFirms || uniqueFirms.length === 0) {
+    return (
+      <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow-sm flex items-center justify-center py-24 px-6">
+        <div className="text-center max-w-lg">
+          <h2 className="text-[20px] font-semibold text-[#111827]">
+            No firms available
+          </h2>
 
-        <p className="mt-3 text-[14px] text-[#6B7280] leading-relaxed">
-          We couldn’t find any advisory firms matching your current selection.
-          This may be because no firms are available for the chosen location,
-          or you haven’t saved any firms yet.
-        </p>
+          <p className="mt-3 text-[14px] text-[#6B7280] leading-relaxed">
+            We couldn’t find any advisory firms matching your current selection.
+            This may be because no firms are available for the chosen location,
+            or you haven’t saved any firms yet.
+          </p>
 
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Link
-            href="/"
-            className="px-5 py-2 rounded-lg text-white text-[14px] font-semibold transition hover:opacity-90"
-            style={{ backgroundColor: "#0F4C81" }}
-          >
-            Browse Advisors
-          </Link>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Link
+              href="/"
+              className="px-5 py-2 rounded-lg text-white text-[14px] font-semibold transition hover:opacity-90"
+              style={{ backgroundColor: "#0F4C81" }}
+            >
+              Browse Advisors
+            </Link>
 
-          <Link
-            href="/advisors"
-            className="px-5 py-2 rounded-lg border border-[#D3D7DE] text-[14px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition"
-          >
-            Search by Location
-          </Link>
+            <Link
+              href="/advisors"
+              className="px-5 py-2 rounded-lg border border-[#D3D7DE] text-[14px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition"
+            >
+              Search by Location
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
-
+    );
+  }
 
   /* -----------------------------------------
-     TABLE
+     TABLE (UNCHANGED UI)
   ------------------------------------------ */
   return (
     <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow overflow-hidden">
@@ -159,7 +172,7 @@ if (!firms || firms.length === 0) {
         </thead>
 
         <tbody>
-          {firms.map((firm) => {
+          {uniqueFirms.map((firm) => {
             const isSaved = savedFirms.includes(firm.crd);
 
             return (
@@ -180,9 +193,7 @@ if (!firms || firms.length === 0) {
                   </span>
                 </td>
 
-                <td className="px-5 py-4 text-[#374151]">
-                  {firm.cityState}
-                </td>
+                <td className="px-5 py-4 text-[#374151]">{firm.cityState}</td>
 
                 <td className="px-5 py-4 text-[#374151]">
                   {typeof firm.firmSize === "number"
@@ -194,13 +205,9 @@ if (!firms || firms.length === 0) {
                   {formatMillions(firm.avgClientBalance)}
                 </td>
 
-                <td className="px-5 py-4 text-[#374151]">
-                  {firm.keyService}
-                </td>
+                <td className="px-5 py-4 text-[#374151]">{firm.keyService}</td>
 
-                <td className="px-5 py-4 text-[#374151]">
-                  {firm.averageFee}
-                </td>
+                <td className="px-5 py-4 text-[#374151]">{firm.averageFee}</td>
 
                 <td className="px-5 py-4">
                   <div className="flex gap-3">
@@ -209,11 +216,7 @@ if (!firms || firms.length === 0) {
                       onClick={() => handleSaveFirm(firm)}
                       className={`w-[96px] px-[14px] py-[6px] rounded-[6px]
                         text-[13px] font-semibold text-white text-center
-                        ${
-                          isSaved
-                            ? "bg-green-600"
-                            : "bg-[#0F4C81]"
-                        }
+                        ${isSaved ? "bg-green-600" : "bg-[#0F4C81]"}
                         ${
                           loadingSave === firm.crd
                             ? "opacity-60 cursor-not-allowed"
