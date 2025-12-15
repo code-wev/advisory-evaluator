@@ -13,28 +13,29 @@ export default function FirmsTable({ firms = [] }) {
   const [loadingSave, setLoadingSave] = useState(null);
 
   /* -----------------------------------------
-     NORMALIZE FIRMS (🔥 FIX DUPLICATES)
+     NORMALIZE FIRMS (REMOVE DUPLICATES)
   ------------------------------------------ */
   const uniqueFirms = useMemo(() => {
-    return Array.from(new Map((firms || []).map((f) => [f.crd, f])).values());
+    return Array.from(
+      new Map((firms || []).map((f) => [f.crd, f])).values()
+    );
   }, [firms]);
 
   /* -----------------------------------------
-     LOAD SAVED FIRMS (🔥 FIX DOUBLE LOAD)
+     LOAD SAVED FIRMS
   ------------------------------------------ */
   useEffect(() => {
     if (!session) return;
 
-    let isMounted = true;
+    let mounted = true;
 
     async function loadSavedFirms() {
       try {
         const res = await fetch("/api/firm/saved");
         const data = await res.json();
 
-        if (res.ok && isMounted) {
-          const uniqueSaved = Array.from(new Set(data.savedFirms || []));
-          setSavedFirms(uniqueSaved);
+        if (res.ok && mounted) {
+          setSavedFirms(Array.from(new Set(data.savedFirms || [])));
         }
       } catch (err) {
         console.error("Failed to load saved firms");
@@ -44,12 +45,12 @@ export default function FirmsTable({ firms = [] }) {
     loadSavedFirms();
 
     return () => {
-      isMounted = false;
+      mounted = false;
     };
   }, [session]);
 
   /* -----------------------------------------
-     SAVE / UNSAVE HANDLER (🔥 RACE SAFE)
+     SAVE / UNSAVE HANDLER
   ------------------------------------------ */
   const handleSaveFirm = async (firm) => {
     if (!session) {
@@ -63,9 +64,10 @@ export default function FirmsTable({ firms = [] }) {
     try {
       setLoadingSave(firm.crd);
 
-      toast.loading(isCurrentlySaved ? "Removing firm..." : "Saving firm...", {
-        id: toastId,
-      });
+      toast.loading(
+        isCurrentlySaved ? "Removing firm..." : "Saving firm...",
+        { id: toastId }
+      );
 
       const res = await fetch("/api/firm/save", {
         method: "POST",
@@ -112,7 +114,7 @@ export default function FirmsTable({ firms = [] }) {
   };
 
   /* -----------------------------------------
-     EMPTY STATE (UNCHANGED)
+     EMPTY STATE
   ------------------------------------------ */
   if (!uniqueFirms || uniqueFirms.length === 0) {
     return (
@@ -131,7 +133,7 @@ export default function FirmsTable({ firms = [] }) {
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link
               href="/"
-              className="px-5 py-2 rounded-lg text-white text-[14px] font-semibold transition hover:opacity-90"
+              className="px-5 py-2 rounded-lg text-white text-[14px] font-semibold"
               style={{ backgroundColor: "#0F4C81" }}
             >
               Browse Advisors
@@ -139,7 +141,7 @@ export default function FirmsTable({ firms = [] }) {
 
             <Link
               href="/advisors"
-              className="px-5 py-2 rounded-lg border border-[#D3D7DE] text-[14px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition"
+              className="px-5 py-2 rounded-lg border border-[#D3D7DE] text-[14px] font-semibold text-[#374151]"
             >
               Search by Location
             </Link>
@@ -150,97 +152,110 @@ export default function FirmsTable({ firms = [] }) {
   }
 
   /* -----------------------------------------
-     TABLE (UNCHANGED UI)
+     TABLE (MOBILE RESPONSIVE FIX)
   ------------------------------------------ */
   return (
-    <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow overflow-hidden">
-      <table className="w-full text-[14px]">
-        <thead>
-          <tr className="bg-[#F5F7FA] text-[#6B7280] border-b border-[#E3E6EB]">
-            <th className="px-5 py-3 text-left font-medium">Company Name</th>
-            <th className="px-5 py-3 text-left font-medium">City / State</th>
-            <th className="px-5 py-3 text-left font-medium">Firm Size</th>
-            <th className="px-5 py-3 text-left font-medium">
-              Avg Client Balance
-            </th>
-            <th className="px-5 py-3 text-left font-medium">
-              Key Service Focus
-            </th>
-            <th className="px-5 py-3 text-left font-medium">Fee Type</th>
-            <th className="px-5 py-3 text-left font-medium">Action</th>
-          </tr>
-        </thead>
+    <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow">
+      {/* 🔥 MOBILE SCROLL WRAPPER */}
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-[900px] w-full text-[14px]">
+          <thead>
+            <tr className="bg-[#F5F7FA] text-[#6B7280] border-b border-[#E3E6EB]">
+              <th className="px-5 py-3 text-left font-medium">Company Name</th>
+              <th className="px-5 py-3 text-left font-medium">City / State</th>
+              <th className="px-5 py-3 text-left font-medium">Firm Size</th>
+              <th className="px-5 py-3 text-left font-medium">
+                Avg Client Balance
+              </th>
+              <th className="px-5 py-3 text-left font-medium">
+                Key Service Focus
+              </th>
+              <th className="px-5 py-3 text-left font-medium">Fee Type</th>
+              <th className="px-5 py-3 text-left font-medium">Action</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {uniqueFirms.map((firm) => {
-            const isSaved = savedFirms.includes(firm.crd);
+          <tbody>
+            {uniqueFirms.map((firm) => {
+              const isSaved = savedFirms.includes(firm.crd);
 
-            return (
-              <tr
-                key={firm.crd}
-                className="border-b border-[#ECEEF1] hover:bg-[#F8F9FB]"
-              >
-                <td className="px-5 py-4 flex items-center gap-3">
-                  <Image
-                    src={firm.logo}
-                    alt={firm.name}
-                    width={28}
-                    height={28}
-                    className="rounded-full"
-                  />
-                  <span className="font-semibold text-[#111827]">
-                    {firm.name}
-                  </span>
-                </td>
+              return (
+                <tr
+                  key={firm.crd}
+                  className="border-b border-[#ECEEF1] hover:bg-[#F8F9FB]"
+                >
+                  <td className="px-5 py-4 flex items-center gap-3">
+                    <Image
+                      src={firm.logo}
+                      alt={firm.name}
+                      width={28}
+                      height={28}
+                      className="rounded-full"
+                    />
+                    <span className="font-semibold text-[#111827]">
+                      {firm.name}
+                    </span>
+                  </td>
 
-                <td className="px-5 py-4 text-[#374151]">{firm.cityState}</td>
+                  <td className="px-5 py-4 text-[#374151]">
+                    {firm.cityState}
+                  </td>
 
-                <td className="px-5 py-4 text-[#374151]">
-                  {typeof firm.firmSize === "number"
-                    ? getFirmSizeLabel(firm.firmSize)
-                    : firm.firmSize || "N/A"}
-                </td>
+                  <td className="px-5 py-4 text-[#374151]">
+                    {typeof firm.firmSize === "number"
+                      ? getFirmSizeLabel(firm.firmSize)
+                      : firm.firmSize || "N/A"}
+                  </td>
 
-                <td className="px-5 py-4 text-[#374151]">
-                  {formatMillions(firm.avgClientBalance)}
-                </td>
+                  <td className="px-5 py-4 text-[#374151]">
+                    {formatMillions(firm.avgClientBalance)}
+                  </td>
 
-                <td className="px-5 py-4 text-[#374151]">{firm.keyService}</td>
+                  <td className="px-5 py-4 text-[#374151]">
+                    {firm.keyService}
+                  </td>
 
-                <td className="px-5 py-4 text-[#374151]">{firm.averageFee}</td>
+                  <td className="px-5 py-4 text-[#374151]">
+                    {firm.averageFee}
+                  </td>
 
-                <td className="px-5 py-4">
-                  <div className="flex gap-3">
-                    <button
-                      disabled={loadingSave === firm.crd}
-                      onClick={() => handleSaveFirm(firm)}
-                      className={`w-[96px] px-[14px] py-[6px] rounded-[6px]
-                        text-[13px] font-semibold text-white text-center
-                        ${isSaved ? "bg-green-600" : "bg-[#0F4C81]"}
-                        ${
-                          loadingSave === firm.crd
-                            ? "opacity-60 cursor-not-allowed"
-                            : ""
-                        }
-                      `}
-                    >
-                      {isSaved ? "Saved" : "Save Firm"}
-                    </button>
+                  <td className="px-5 py-4">
+                    <div className="flex gap-3">
+                      <button
+                        disabled={loadingSave === firm.crd}
+                        onClick={() => handleSaveFirm(firm)}
+                        className={`w-[96px] px-[14px] py-[6px] rounded-[6px]
+                          text-[13px] font-semibold text-white
+                          ${
+                            isSaved
+                              ? "bg-green-600"
+                              : "bg-[#0F4C81]"
+                          }
+                          ${
+                            loadingSave === firm.crd
+                              ? "opacity-60 cursor-not-allowed"
+                              : ""
+                          }
+                        `}
+                      >
+                        {isSaved ? "Saved" : "Save Firm"}
+                      </button>
 
-                    <Link
-                      href={`/advisors/${firm.crd}`}
-                      className="px-[14px] py-[6px] rounded-[6px] border border-[#D3D7DE]
-                        text-[13px] text-[#374151] hover:bg-[#F0F2F5]"
-                    >
-                      Details
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                      <Link
+                        href={`/advisors/${firm.crd}`}
+                        className="px-[14px] py-[6px] rounded-[6px] border border-[#D3D7DE]
+                          text-[13px] text-[#374151] hover:bg-[#F0F2F5]"
+                      >
+                        Details
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
