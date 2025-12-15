@@ -7,15 +7,32 @@ import { FiSearch } from "react-icons/fi";
 
 export default function HeroBanner() {
   const [query, setQuery] = useState("");
+  const [mapLocation, setMapLocation] = useState(""); 
   const router = useRouter();
 
+  /* -----------------------------------------
+     SEARCH HANDLER (INPUT OR MAP)
+  ------------------------------------------ */
   const handleSearch = () => {
-    if (!query.trim()) return;
-    router.push(`/advisors?location=${encodeURIComponent(query.trim())}`);
+    const finalLocation = mapLocation || query;
+
+    if (!finalLocation.trim()) return;
+
+    router.push(
+      `/advisors?location=${encodeURIComponent(finalLocation.trim())}`
+    );
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleSearch();
+  };
+
+  /* -----------------------------------------
+     MAP CALLBACK (NO UI CHANGE)
+  ------------------------------------------ */
+  const handleMapSelect = (location) => {
+    setMapLocation(location);
+    setQuery(location); // sync input for better UX
   };
 
   return (
@@ -34,37 +51,33 @@ export default function HeroBanner() {
           </p>
 
           <div>
-            {/* LABEL */}
             <p className="text-white/80 text-[14px] mb-2">
               Select your state or enter zip code
             </p>
 
-            {/* SEARCH BAR EXACT FIGMA */}
+            {/* SEARCH BAR (UNCHANGED) */}
             <div className="flex w-full max-w-xl">
-              {/* INPUT */}
               <input
                 type="text"
                 placeholder="State / Zip code"
                 className="flex-1 px-4 py-[11px] bg-white text-gray-800
-                 border border-gray-300 rounded-l-md 
-                 focus:outline-none text-[14px]"
+                  border border-gray-300 rounded-l-md 
+                  focus:outline-none text-[14px]"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setMapLocation(""); // reset map when typing
+                }}
+                onKeyDown={handleKeyDown}
               />
 
-              {/* SEARCH BUTTON (EXACT FIGMA) */}
               <button
                 onClick={handleSearch}
                 className="px-5 py-[11px] bg-white border border-gray-300 
-                 border-l-0 rounded-r-md flex items-center gap-2 
-                 hover:bg-gray-50 transition"
+                  border-l-0 rounded-r-md flex items-center gap-2 
+                  hover:bg-gray-50 transition"
               >
-                {/* ICON CIRCLE EXACT FIGMA */}
-                <span
-                  className="w-[28px] h-[28px]
-                      flex items-center justify-center"
-                >
+                <span className="w-[28px] h-[28px] flex items-center justify-center">
                   <FiSearch className="text-[18px] text-gray-700" />
                 </span>
 
@@ -77,9 +90,9 @@ export default function HeroBanner() {
         </div>
       </div>
 
-      {/* RIGHT: REAL MAP */}
+      {/* RIGHT: MAP (MAP-BASED SEARCH ENABLED) */}
       <div className="relative w-full h-full">
-        <MapBox />
+        <MapBox onLocationSelect={handleMapSelect} />
       </div>
     </section>
   );
