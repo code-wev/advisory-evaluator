@@ -119,8 +119,32 @@ export default function AdvisorDetails() {
     .filter(Boolean)
     .join(", ");
 
-  const mainWebsite = item1.WebAddrs?.WebAddr;
+  function normalizePrimaryWebsite(urls = []) {
+    if (!Array.isArray(urls) || urls.length === 0) return null;
+
+    try {
+      // Prefer clean root domains
+      for (const raw of urls) {
+        const u = new URL(raw);
+        if (
+          u.pathname === "/" ||
+          u.pathname === "" ||
+          u.pathname === "/index.html"
+        ) {
+          return u.origin;
+        }
+      }
+
+      // Fallback: strip subpaths from first URL
+      const first = new URL(urls[0]);
+      return first.origin;
+    } catch {
+      return urls[0];
+    }
+  }
+
   const allWebsites = item1.WebAddrs?.WebAddrs || [];
+  const mainWebsite = normalizePrimaryWebsite(allWebsites);
 
   const firmSizeLabel =
     item5F.Q5F2C && item5F.Q5F2C > 0
@@ -593,168 +617,170 @@ export default function AdvisorDetails() {
       {/* ================================================== */}
       {/*              FP SERVICES REVIEW                   */}
       {/* ================================================== */}
-     <CardSection title="FP Services Review (Judged by Industry Experts)">
-  {/* ================= Custodians ================= */}
-  <div className="mb-5 border border-emerald-200 bg-emerald-50 rounded-lg p-4">
-    <p className="font-semibold text-emerald-800">
-      Custodians for Separately Managed Accounts
-    </p>
+      <CardSection title="FP Services Review (Judged by Industry Experts)">
+        {/* ================= Custodians ================= */}
+        <div className="mb-5 border border-emerald-200 bg-emerald-50 rounded-lg p-4">
+          <p className="font-semibold text-emerald-800">
+            Custodians for Separately Managed Accounts
+          </p>
 
-    <p className="mt-2 text-sm text-gray-700 font-medium">
-      What This Means For You
-    </p>
-    <p className="text-sm text-gray-700">
-      This tells you who is physically holding and safeguarding your investment
-      assets. The advisor manages your portfolio, but a separate, independent
-      company (the custodian) holds the assets to ensure their safety.
-    </p>
+          <p className="mt-2 text-sm text-gray-700 font-medium">
+            What This Means For You
+          </p>
+          <p className="text-sm text-gray-700">
+            This tells you who is physically holding and safeguarding your
+            investment assets. The advisor manages your portfolio, but a
+            separate, independent company (the custodian) holds the assets to
+            ensure their safety.
+          </p>
 
-    <p className="mt-3 text-sm text-gray-700 font-medium">
-      Our Expert’s Note
-    </p>
+          <p className="mt-3 text-sm text-gray-700 font-medium">
+            Our Expert’s Note
+          </p>
 
-    {hasCustodians ? (
-      <ul className="list-disc ml-6 mt-1 text-sm text-gray-700">
-        {custodians.map((c, idx) => {
-          const name =
-            c["1a-custodianName"] ||
-            c["custodianName"] ||
-            c["25b-legalName"] ||
-            `Custodian #${idx + 1}`;
+          {hasCustodians ? (
+            <ul className="list-disc ml-6 mt-1 text-sm text-gray-700">
+              {custodians.map((c, idx) => {
+                const name =
+                  c["1a-custodianName"] ||
+                  c["custodianName"] ||
+                  c["25b-legalName"] ||
+                  `Custodian #${idx + 1}`;
 
-          const loc = c["25d-location"] || c.location || {};
-          const cityState =
-            loc.city && loc.state
-              ? `${loc.city}, ${loc.state}`
-              : loc.city || loc.state || "";
+                const loc = c["25d-location"] || c.location || {};
+                const cityState =
+                  loc.city && loc.state
+                    ? `${loc.city}, ${loc.state}`
+                    : loc.city || loc.state || "";
 
-          return (
-            <li key={idx}>
-              {name}
-              {cityState && `: ${cityState}`}
-            </li>
-          );
-        })}
-      </ul>
-    ) : (
-      <p className="text-sm text-gray-700">None Reported</p>
-    )}
-  </div>
+                return (
+                  <li key={idx}>
+                    {name}
+                    {cityState && `: ${cityState}`}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-700">None Reported</p>
+          )}
+        </div>
 
-  {/* ================= SLOA ================= */}
-  <div className="mb-5 border border-amber-200 bg-amber-50 rounded-lg p-4">
-    <p className="font-semibold text-amber-800">
-      Standing Letter of Instruction
-    </p>
+        {/* ================= SLOA ================= */}
+        <div className="mb-5 border border-amber-200 bg-amber-50 rounded-lg p-4">
+          <p className="font-semibold text-amber-800">
+            Standing Letter of Instruction
+          </p>
 
-    <p className="mt-2 text-sm text-gray-700 font-medium">
-      What This Means For You
-    </p>
-    <p className="text-sm text-gray-700">
-      A Standing Letter of Instruction (SLOI) is a pre-authorization you grant,
-      allowing your advisor to move money between your accounts or to designated
-      third parties without needing your signed approval for every transaction.
-    </p>
+          <p className="mt-2 text-sm text-gray-700 font-medium">
+            What This Means For You
+          </p>
+          <p className="text-sm text-gray-700">
+            A Standing Letter of Instruction (SLOI) is a pre-authorization you
+            grant, allowing your advisor to move money between your accounts or
+            to designated third parties without needing your signed approval for
+            every transaction.
+          </p>
 
-    <p className="mt-3 text-sm text-gray-700 font-medium">
-      Our Expert’s Note
-    </p>
-    <p className="text-sm text-gray-700">
-      {hasSLOAReported
-        ? "Standing instructions reported."
-        : "No SLOA Reported"}
-    </p>
-  </div>
+          <p className="mt-3 text-sm text-gray-700 font-medium">
+            Our Expert’s Note
+          </p>
+          <p className="text-sm text-gray-700">
+            {hasSLOAReported
+              ? "Standing instructions reported."
+              : "No SLOA Reported"}
+          </p>
+        </div>
 
-  {/* ================= Other Business Activities ================= */}
-  <div className="mb-5 border border-blue-200 bg-blue-50 rounded-lg p-4">
-    <p className="font-semibold text-blue-800">
-      Other Business Activities
-    </p>
+        {/* ================= Other Business Activities ================= */}
+        <div className="mb-5 border border-blue-200 bg-blue-50 rounded-lg p-4">
+          <p className="font-semibold text-blue-800">
+            Other Business Activities
+          </p>
 
-    <p className="mt-2 text-sm text-gray-700 font-medium">
-      What This Means For You
-    </p>
-    <p className="text-sm text-gray-700">
-      This indicates that the firm or its advisors are involved in other
-      financial capacities, such as selling insurance, working as a broker, or
-      operating related businesses.
-    </p>
+          <p className="mt-2 text-sm text-gray-700 font-medium">
+            What This Means For You
+          </p>
+          <p className="text-sm text-gray-700">
+            This indicates that the firm or its advisors are involved in other
+            financial capacities, such as selling insurance, working as a
+            broker, or operating related businesses.
+          </p>
 
-    <p className="mt-3 text-sm text-gray-700 font-medium">
-      Our Expert’s Note
-    </p>
-    <p className="text-sm text-gray-700">
-      {hasOtherBusinessActivities
-        ? "Conflict of Interest: This is a key transparency point. When a firm has other business activities, it can create situations where the advisor’s compensation may influence the products they recommend."
-        : "No Alternate Business Activities Reported"}
-    </p>
-  </div>
+          <p className="mt-3 text-sm text-gray-700 font-medium">
+            Our Expert’s Note
+          </p>
+          <p className="text-sm text-gray-700">
+            {hasOtherBusinessActivities
+              ? "Conflict of Interest: This is a key transparency point. When a firm has other business activities, it can create situations where the advisor’s compensation may influence the products they recommend."
+              : "No Alternate Business Activities Reported"}
+          </p>
+        </div>
 
-  {/* ================= Products & Services ================= */}
-  <div className="mb-5 border border-purple-200 bg-purple-50 rounded-lg p-4">
-    <p className="font-semibold text-purple-800">
-      Products or Services Beyond Investment Advice
-    </p>
+        {/* ================= Products & Services ================= */}
+        <div className="mb-5 border border-purple-200 bg-purple-50 rounded-lg p-4">
+          <p className="font-semibold text-purple-800">
+            Products or Services Beyond Investment Advice
+          </p>
 
-    <p className="mt-2 text-sm text-gray-700">
-      {hasOtherBusinessActivities
-        ? "This Firm Sells Products or Services other than Investment Advice to Clients."
-        : "This Firm Does Not Sell Products or Services other than Investment Advice to Clients."}
-    </p>
-  </div>
+          <p className="mt-2 text-sm text-gray-700">
+            {hasOtherBusinessActivities
+              ? "This Firm Sells Products or Services other than Investment Advice to Clients."
+              : "This Firm Does Not Sell Products or Services other than Investment Advice to Clients."}
+          </p>
+        </div>
 
-  {/* ================= Things To Know ================= */}
-  <div className="border border-gray-200 bg-gray-50 rounded-lg p-4">
-    <p className="font-semibold text-gray-800 mb-3">
-      ---- Things To Know ----
-    </p>
+        {/* ================= Things To Know ================= */}
+        <div className="border border-gray-200 bg-gray-50 rounded-lg p-4">
+          <p className="font-semibold text-gray-800 mb-3">
+            ---- Things To Know ----
+          </p>
 
-    <div className="mb-3">
-      <p className="font-semibold">
-        Proprietary Interest in Client Transactions
-      </p>
-      <p className="text-sm text-gray-700">
-        {hasProprietaryInterest
-          ? "Buys or Sells for Self: Securities (other than shares of mutual funds) that are also recommended to Advisory Clients."
-          : "None Reported"}
-      </p>
-    </div>
+          <div className="mb-3">
+            <p className="font-semibold">
+              Proprietary Interest in Client Transactions
+            </p>
+            <p className="text-sm text-gray-700">
+              {hasProprietaryInterest
+                ? "Buys or Sells for Self: Securities (other than shares of mutual funds) that are also recommended to Advisory Clients."
+                : "None Reported"}
+            </p>
+          </div>
 
-    <div className="mb-3">
-      <p className="font-semibold">
-        Sales Interest in Client Transactions
-      </p>
-      <p className="text-sm text-gray-700">
-        {hasSalesInterest ? "Sales interest reported." : "None Reported"}
-      </p>
-    </div>
+          <div className="mb-3">
+            <p className="font-semibold">
+              Sales Interest in Client Transactions
+            </p>
+            <p className="text-sm text-gray-700">
+              {hasSalesInterest ? "Sales interest reported." : "None Reported"}
+            </p>
+          </div>
 
-    <div className="mb-3">
-      <p className="font-semibold">
-        Investment or Brokerage Discretion
-      </p>
-      {hasInvestmentDiscretion ? (
-        <ul className="list-disc ml-6 text-sm text-gray-700">
-          <li>Securities to be Bought or Sold for a Client’s Account</li>
-          <li>Amount of Securities to be Bought or Sold for a Client’s Account</li>
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-700">None Reported</p>
-      )}
-    </div>
+          <div className="mb-3">
+            <p className="font-semibold">Investment or Brokerage Discretion</p>
+            {hasInvestmentDiscretion ? (
+              <ul className="list-disc ml-6 text-sm text-gray-700">
+                <li>Securities to be Bought or Sold for a Client’s Account</li>
+                <li>
+                  Amount of Securities to be Bought or Sold for a Client’s
+                  Account
+                </li>
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-700">None Reported</p>
+            )}
+          </div>
 
-    <div>
-      <p className="font-semibold">Wrap Fee Program Participation</p>
-      <p className="text-sm text-gray-700">
-        {participatesInWrapFee
-          ? "Participates in Wrap Fee Program."
-          : "Does not Participate."}
-      </p>
-    </div>
-  </div>
-</CardSection>
-
+          <div>
+            <p className="font-semibold">Wrap Fee Program Participation</p>
+            <p className="text-sm text-gray-700">
+              {participatesInWrapFee
+                ? "Participates in Wrap Fee Program."
+                : "Does not Participate."}
+            </p>
+          </div>
+        </div>
+      </CardSection>
 
       {/* ================================================== */}
       {/*                    DISCLOSURES                    */}

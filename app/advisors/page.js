@@ -1,4 +1,5 @@
 import FirmsTable from "@/components/Home/FirmsTable";
+import Footer from "@/components/Shared/Footer";
 
 function isZipCode(value = "") {
   return /^\d{5}$/.test(value.trim());
@@ -65,6 +66,7 @@ export default async function AdvisorsPage({ searchParams }) {
 
         <FirmsTable firms={data.firms} />
       </div>
+      <Footer />
     </div>
   );
 }

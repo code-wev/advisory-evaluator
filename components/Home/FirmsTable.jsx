@@ -13,12 +13,10 @@ export default function FirmsTable({ firms = [] }) {
   const [loadingSave, setLoadingSave] = useState(null);
 
   /* -----------------------------------------
-     NORMALIZE FIRMS (REMOVE DUPLICATES)
+     REMOVE DUPLICATES (BY CRD)
   ------------------------------------------ */
   const uniqueFirms = useMemo(() => {
-    return Array.from(
-      new Map((firms || []).map((f) => [f.crd, f])).values()
-    );
+    return Array.from(new Map((firms || []).map((f) => [f.crd, f])).values());
   }, [firms]);
 
   /* -----------------------------------------
@@ -37,20 +35,17 @@ export default function FirmsTable({ firms = [] }) {
         if (res.ok && mounted) {
           setSavedFirms(Array.from(new Set(data.savedFirms || [])));
         }
-      } catch (err) {
+      } catch {
         console.error("Failed to load saved firms");
       }
     }
 
     loadSavedFirms();
-
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, [session]);
 
   /* -----------------------------------------
-     SAVE / UNSAVE HANDLER
+     SAVE / UNSAVE
   ------------------------------------------ */
   const handleSaveFirm = async (firm) => {
     if (!session) {
@@ -58,16 +53,14 @@ export default function FirmsTable({ firms = [] }) {
       return;
     }
 
-    const isCurrentlySaved = savedFirms.includes(firm.crd);
+    const isSaved = savedFirms.includes(firm.crd);
     const toastId = `save-${firm.crd}`;
 
     try {
       setLoadingSave(firm.crd);
-
-      toast.loading(
-        isCurrentlySaved ? "Removing firm..." : "Saving firm...",
-        { id: toastId }
-      );
+      toast.loading(isSaved ? "Removing firm..." : "Saving firm...", {
+        id: toastId,
+      });
 
       const res = await fetch("/api/firm/save", {
         method: "POST",
@@ -75,187 +68,129 @@ export default function FirmsTable({ firms = [] }) {
         body: JSON.stringify({ crd: firm.crd }),
       });
 
-      const data = await res.json();
+      if (!res.ok) throw new Error();
 
-      if (!res.ok) {
-        toast.error(data.error || "Something went wrong", { id: toastId });
-        return;
-      }
+      setSavedFirms((prev) =>
+        isSaved ? prev.filter((id) => id !== firm.crd) : [...prev, firm.crd]
+      );
 
-      if (isCurrentlySaved) {
-        setSavedFirms((prev) => prev.filter((id) => id !== firm.crd));
-        toast.success("Firm removed from saved list", { id: toastId });
-      } else {
-        setSavedFirms((prev) =>
-          prev.includes(firm.crd) ? prev : [...prev, firm.crd]
-        );
-        toast.success("Firm saved successfully", { id: toastId });
-      }
-    } catch (error) {
-      toast.error("Server error. Please try again.", { id: toastId });
+      toast.success(isSaved ? "Firm removed" : "Firm saved", {
+        id: toastId,
+      });
+    } catch {
+      toast.error("Server error", { id: toastId });
     } finally {
       setLoadingSave(null);
     }
   };
 
   /* -----------------------------------------
-     HELPERS
+     AUM → FIRM SIZE (YOUR EXACT LOGIC)
   ------------------------------------------ */
-  const getFirmSizeLabel = (aum) => {
+  const getFirmSize = (aum) => {
     if (!aum || isNaN(aum)) return "N/A";
-    if (aum >= 1_000_000_000) return "Large Firm ($1B+ AUM)";
-    if (aum >= 100_000_000) return "Midsize Firm ($100M–$1B AUM)";
-    return "Small Firm ($100M AUM)";
-  };
 
-  const formatMillions = (aum) => {
-    if (!aum || isNaN(aum)) return "N/A";
-    return `${(aum / 1_000_000).toFixed(1)} M`;
+    if (aum < 250_000_000) return "Small ($250M AUM)";
+    if (aum < 500_000_000) return "Small–Medium ($250–500M)";
+    if (aum < 750_000_000) return "Medium ($500–750M)";
+    if (aum < 1_000_000_000) return "Medium–Large ($750M–$1B)";
+    if (aum < 5_000_000_000) return "Large ($1B–$5B)";
+    if (aum < 15_000_000_000) return "Giant ($5B–$15B)";
+    return "Mega ($15B+)";
   };
 
   /* -----------------------------------------
      EMPTY STATE
   ------------------------------------------ */
-  if (!uniqueFirms || uniqueFirms.length === 0) {
+  if (!uniqueFirms.length) {
     return (
-      <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow-sm flex items-center justify-center py-24 px-6">
-        <div className="text-center max-w-lg">
-          <h2 className="text-[20px] font-semibold text-[#111827]">
-            No firms available
-          </h2>
-
-          <p className="mt-3 text-[14px] text-[#6B7280] leading-relaxed">
-            We couldn’t find any advisory firms matching your current selection.
-            This may be because no firms are available for the chosen location,
-            or you haven’t saved any firms yet.
-          </p>
-
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <Link
-              href="/"
-              className="px-5 py-2 rounded-lg text-white text-[14px] font-semibold"
-              style={{ backgroundColor: "#0F4C81" }}
-            >
-              Browse Advisors
-            </Link>
-
-            <Link
-              href="/advisors"
-              className="px-5 py-2 rounded-lg border border-[#D3D7DE] text-[14px] font-semibold text-[#374151]"
-            >
-              Search by Location
-            </Link>
-          </div>
-        </div>
+      <div className="text-center py-24">
+        <h2 className="text-lg font-semibold">No firms found</h2>
+        <p className="text-sm text-gray-500 mt-2">
+          Try a different search or location.
+        </p>
       </div>
     );
   }
 
   /* -----------------------------------------
-     TABLE (MOBILE RESPONSIVE FIX)
+     CARD GRID (FIGMA-MATCHED)
   ------------------------------------------ */
   return (
-    <div className="w-full bg-white rounded-[14px] border border-[#D9DDE3] shadow">
-      {/* 🔥 MOBILE SCROLL WRAPPER */}
-      <div className="w-full overflow-x-auto">
-        <table className="min-w-[900px] w-full text-[14px]">
-          <thead>
-            <tr className="bg-[#F5F7FA] text-[#6B7280] border-b border-[#E3E6EB]">
-              <th className="px-5 py-3 text-left font-medium">Company Name</th>
-              <th className="px-5 py-3 text-left font-medium">City / State</th>
-              <th className="px-5 py-3 text-left font-medium">Firm Size</th>
-              <th className="px-5 py-3 text-left font-medium">
-                Avg Client Balance
-              </th>
-              <th className="px-5 py-3 text-left font-medium">
-                Key Service Focus
-              </th>
-              <th className="px-5 py-3 text-left font-medium">Fee Type</th>
-              <th className="px-5 py-3 text-left font-medium">Action</th>
-            </tr>
-          </thead>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {uniqueFirms.map((firm) => {
+        const isSaved = savedFirms.includes(firm.crd);
 
-          <tbody>
-            {uniqueFirms.map((firm) => {
-              const isSaved = savedFirms.includes(firm.crd);
+        return (
+          <div
+            key={firm.crd}
+            className="bg-[#F5F7FA] rounded-xl p-6 flex flex-col"
+          >
+            {/* CONTENT */}
+            <div className="flex-1">
+              {/* TITLE */}
+              <h3 className="text-[15px] font-semibold text-[#111827] mb-6">
+                {firm.name}
+              </h3>
 
-              return (
-                <tr
-                  key={firm.crd}
-                  className="border-b border-[#ECEEF1] hover:bg-[#F8F9FB]"
-                >
-                  <td className="px-5 py-4 flex items-center gap-3">
-                    <Image
-                      src={firm.logo}
-                      alt={firm.name}
-                      width={28}
-                      height={28}
-                      className="rounded-full"
-                    />
-                    <span className="font-semibold text-[#111827]">
-                      {firm.name}
-                    </span>
-                  </td>
+              {/* META */}
+              <div className="grid grid-cols-2 gap-y-5 text-[13px] text-[#6B7280]">
+                <div>
+                  <span className="block text-[#7F8C8D] font-medium text-[11px] uppercase tracking-wide mb-1">
+                    City / State
+                  </span>
+                  <span className="text-[#111827]">
+                    {firm.cityState && firm.cityState.replace(",", "").trim()
+                      ? firm.cityState
+                      : "N/A"}
+                  </span>
+                </div>
 
-                  <td className="px-5 py-4 text-[#374151]">
-                    {firm.cityState}
-                  </td>
+                <div>
+                  <span className="block text-[11px] font-medium uppercase tracking-wide mb-1">
+                    Firm size
+                  </span>
+                  <span className="text-[#111827]">
+                    {getFirmSize(firm.firmSize)}
+                  </span>
+                </div>
 
-                  <td className="px-5 py-4 text-[#374151]">
-                    {typeof firm.firmSize === "number"
-                      ? getFirmSizeLabel(firm.firmSize)
-                      : firm.firmSize || "N/A"}
-                  </td>
+                <div>
+                  <span className="block text-[11px] font-medium uppercase tracking-wide mb-1">
+                    Average Fee
+                  </span>
+                  <span className="text-[#111827]">{firm.averageFee}</span>
+                </div>
+              </div>
+            </div>
 
-                  <td className="px-5 py-4 text-[#374151]">
-                    {formatMillions(firm.avgClientBalance)}
-                  </td>
+            {/* ACTIONS — ALWAYS BOTTOM */}
+            <div className="flex gap-3 pt-8">
+              <button
+                onClick={() => handleSaveFirm(firm)}
+                disabled={loadingSave === firm.crd}
+                className={`h-8 px-4 rounded-md text-xs font-semibold
+                ${
+                  isSaved
+                    ? "bg-[#16A34A] text-white"
+                    : "bg-[#0F4C81] text-white"
+                }`}
+              >
+                {isSaved ? "Saved" : "Save Firm"}
+              </button>
 
-                  <td className="px-5 py-4 text-[#374151]">
-                    {firm.keyService}
-                  </td>
-
-                  <td className="px-5 py-4 text-[#374151]">
-                    {firm.averageFee}
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <div className="flex gap-3">
-                      <button
-                        disabled={loadingSave === firm.crd}
-                        onClick={() => handleSaveFirm(firm)}
-                        className={`w-[96px] px-[14px] py-[6px] rounded-[6px]
-                          text-[13px] font-semibold text-white
-                          ${
-                            isSaved
-                              ? "bg-green-600"
-                              : "bg-[#0F4C81]"
-                          }
-                          ${
-                            loadingSave === firm.crd
-                              ? "opacity-60 cursor-not-allowed"
-                              : ""
-                          }
-                        `}
-                      >
-                        {isSaved ? "Saved" : "Save Firm"}
-                      </button>
-
-                      <Link
-                        href={`/advisors/${firm.crd}`}
-                        className="px-[14px] py-[6px] rounded-[6px] border border-[#D3D7DE]
-                          text-[13px] text-[#374151] hover:bg-[#F0F2F5]"
-                      >
-                        Details
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              <Link
+                href={`/advisors/${firm.crd}`}
+                className="h-8 px-4 rounded-md border border-[#353434]
+                         text-xs font-semibold text-[#111827]
+                         flex items-center justify-center"
+              >
+                Details
+              </Link>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
