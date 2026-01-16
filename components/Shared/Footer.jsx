@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="w-full md:w-[40%]">
           <div className="flex items-center gap-2 mb-4">
           
-            <span className="text-[22px] font-medium">Advisory evaluator</span>
+            <span className="text-[22px] font-medium">Advisory evaluate</span>
           </div>
 
           <p className="text-[14px] leading-[1.7] text-white/80 max-w-xs">
