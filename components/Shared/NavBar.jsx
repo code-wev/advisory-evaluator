@@ -41,7 +41,7 @@ export default function Navbar() {
         <div className="mx-auto px-4 md:px-32 py-3 flex items-center justify-between">
           {/* LOGO */}
           <Link href="/" className="text-[20px] font-semibold text-gray-800">
-            Advisory evaluator
+            Advisory evaluate
           </Link>
 
           {/* DESKTOP MENU */}
