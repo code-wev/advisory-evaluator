@@ -13,18 +13,38 @@ function buildFeeLabel(item5E = {}) {
   return fees.length ? fees.join(", ") : "Not disclosed";
 }
 
+function isCRD(value = "") {
+  return /^\d{4,9}$/.test(value.trim());
+}
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const location = searchParams.get("location") || "";
+    const location = (searchParams.get("location") || "").trim();
 
     const apiKey = process.env.SEC_API_KEY;
 
-    const query = `
-      MainAddr.State:${location.toUpperCase()} 
-      OR MainAddr.City:"${location.toUpperCase()}" 
-      OR MainAddr.PostlCd:${location}
-    `;
+    let query;
+
+    // -------------------------------
+    // CRD NUMBER SEARCH (EXACT)
+    // -------------------------------
+    if (isCRD(location)) {
+      query = `Info.FirmCrdNb:${location}`;
+    }
+    // -------------------------------
+    // FIRM NAME OR LOCATION SEARCH
+    // -------------------------------
+    else {
+      const term = location.toUpperCase();
+
+      query = `
+        Info.LegalNm:"${term}"
+        OR MainAddr.City:"${term}"
+        OR MainAddr.State:${term}
+        OR MainAddr.PostlCd:${location}*
+      `;
+    }
 
     const response = await fetch("https://api.sec-api.io/form-adv/firm", {
       method: "POST",
