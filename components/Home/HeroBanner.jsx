@@ -7,7 +7,7 @@ import { FiSearch } from "react-icons/fi";
 
 export default function HeroBanner() {
   const [query, setQuery] = useState("");
-  const [mapLocation, setMapLocation] = useState(""); 
+  const [mapLocation, setMapLocation] = useState("");
   const router = useRouter();
 
   /* -----------------------------------------
@@ -52,14 +52,14 @@ export default function HeroBanner() {
 
           <div>
             <p className="text-white/80 text-[14px] mb-2">
-              Select your state or enter zip code
+              Search by Firm Name, CRD Number, or City/State
             </p>
 
             {/* SEARCH BAR (UNCHANGED) */}
             <div className="flex w-full max-w-xl">
               <input
                 type="text"
-                placeholder="State / Zip code"
+                placeholder="Enter firm name, CRD number, or city/state"
                 className="flex-1 px-4 py-[11px] bg-white text-gray-800
                   border border-gray-300 rounded-l-md 
                   focus:outline-none text-[14px]"
