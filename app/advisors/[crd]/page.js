@@ -9,6 +9,11 @@ export default function AdvisorDetails() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  function handleOutput(string) {
+    if (string === "Y") return "shown"; // Show if string equals "Y"
+    return "hidden"; // Hide if string is anything other than "Y"
+  }
+
   // ------------------- FETCH FIRM DATA -------------------
   useEffect(() => {
     if (!crd) return; // wait until param is ready
@@ -40,9 +45,9 @@ export default function AdvisorDetails() {
   // ------------------- LOADING STATE -------------------
   if (loading || !crd) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#0F4C81]" />
-        <p className="mt-4 text-gray-700 text-lg font-medium">
+      <div className='flex flex-col items-center justify-center h-[60vh]'>
+        <div className='animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#0F4C81]' />
+        <p className='mt-4 text-gray-700 text-lg font-medium'>
           Loading, please wait...
         </p>
       </div>
@@ -52,25 +57,24 @@ export default function AdvisorDetails() {
   // ------------------- NO DATA STATE -------------------
   if (!data || !data.filing) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
-        <h2 className="text-2xl font-semibold text-gray-800">
+      <div className='flex flex-col items-center justify-center h-[60vh] text-center px-4'>
+        <h2 className='text-2xl font-semibold text-gray-800'>
           Unable to Load Firm Data
         </h2>
 
-        <p className="mt-2 text-gray-600 max-w-md">
+        <p className='mt-2 text-gray-600 max-w-md'>
           We couldn&apos;t retrieve firm information for CRD{" "}
-          <span className="font-medium">{crd}</span>. This may be a temporary
+          <span className='font-medium'>{crd}</span>. This may be a temporary
           issue or a connection problem. Please try refreshing the page.
         </p>
 
         <button
           onClick={() => window.location.reload()}
-          className="mt-5 px-5 py-2.5 bg-[#0F4C81] text-white rounded-lg shadow-md hover:bg-[#0d3f6a] transition-all"
-        >
+          className='mt-5 px-5 py-2.5 bg-[#0F4C81] text-white rounded-lg shadow-md hover:bg-[#0d3f6a] transition-all'>
           Refresh &amp; Try Again
         </button>
 
-        <p className="text-xs text-gray-400 mt-3">
+        <p className='text-xs text-gray-400 mt-3'>
           If the issue continues, please try again later.
         </p>
       </div>
@@ -85,6 +89,10 @@ export default function AdvisorDetails() {
   const addr = filing.MainAddr || {};
   const formPart1A = filing.FormInfo?.Part1A || {};
   const part1A = data.part1A || {}; // from /part-1a/{crd}
+  const altService = data.altService || {};
+  const marketingInfo = info.Item5L || {};
+
+  const altBusActs = filing.FormInfo?.Part1A?.Item6A || {};
 
   // Old style Part1A sub-items (from Firm endpoint)
   const item1 = formPart1A.Item1 || {};
@@ -100,6 +108,28 @@ export default function AdvisorDetails() {
   const item5G = formPart1A.Item5G || {};
   const item5H = formPart1A.Item5H || {};
   const filingDate = filing.Filing?.[0]?.Dt || "";
+
+  const totalInd = part1A["5f-individualsClients"] || 0; // total individuals clients
+  const totalAUMInd = part1A["5f-individualsAum"] || 0; // total AUM for individuals
+
+  const totalHnwInd = part1A["5f-highNetWorthIndividualsClients"] || 0; // total HNWIs
+  const totalHnwIndAUM = part1A["5f-highNetWorthIndividualsAum"] || 0; // total AUM for HNWIs
+
+  // Calculating average AUM for Individuals
+  const avgIndAum = totalInd > 0 ? totalAUMInd / totalInd : 0;
+
+  // Calculating average AUM for HNWIs
+  const avgHnwAum = totalHnwInd > 0 ? totalHnwIndAUM / totalHnwInd : 0;
+
+  // Extract the other management-related variables
+  const pSharing = item5D.Q5DG1 || 0; // Pension and Profit Sharing Plans
+  const charOrgs = item5D.Q5DH1 || 0; // Charitable Organizations
+  const BTI = item5D.Q5DC1 || 0; // Banking or Thrift Institutions
+  const InvComp = item5D.Q5DD1 || 0; // Investment Companies
+  const Pooled = item5D.Q5DF1 || 0; // Pooled Investment Vehicle
+  const Insure = item5D.Q5DL1 || 0; // Insurance Companies
+
+  const totalNonDesc = item5F.Q5F2B || 0;
 
   // Schedules
   const directOwners = data.scheduleA || [];
@@ -188,7 +218,7 @@ export default function AdvisorDetails() {
 
   // 3️⃣ Other Business Activities – Item 6.A
   const hasOtherBusinessActivities = Object.values(
-    formPart1A?.Item6A || {}
+    formPart1A?.Item6A || {},
   ).some((v) => v === "Y");
 
   // 4️⃣ Sells Products or Services – Item 6.B.Q6B3
@@ -196,17 +226,17 @@ export default function AdvisorDetails() {
 
   // 5️⃣ Proprietary Interest – Item 8.A
   const hasProprietaryInterest = Object.values(formPart1A?.Item8A || {}).some(
-    (v) => v === "Y"
+    (v) => v === "Y",
   );
 
   // 6️⃣ Sales Interest – Item 8.B
   const hasSalesInterest = Object.values(formPart1A?.Item8B || {}).some(
-    (v) => v === "Y"
+    (v) => v === "Y",
   );
 
   // 7️⃣ Investment / Brokerage Discretion – Item 8.C
   const hasInvestmentDiscretion = Object.values(formPart1A?.Item8C || {}).some(
-    (v) => v === "Y"
+    (v) => v === "Y",
   );
 
   // 8️⃣ Wrap Fee Program – Item 5.I
@@ -224,47 +254,46 @@ export default function AdvisorDetails() {
   //                        UI
   // ======================================================
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-10 py-10 md:py-12">
+    <div className='max-w-6xl mx-auto px-6 md:px-10 py-10 md:py-12'>
       {/* ================================================== */}
-      {/*                HEADER / SUMMARY CARD              */}
+      {/*                HEADER / SUMMARY CARD               */}
       {/* ================================================== */}
-      <div className="border border-gray-200 rounded-xl p-6 md:p-7 bg-white shadow-sm">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+      <div className='border border-gray-200 rounded-xl p-6 md:p-7 bg-white shadow-sm'>
+        <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
           {info.LegalNm || info.BusNm}
         </h1>
-        <p className="text-gray-700 mt-1 text-sm md:text-[15px]">
+        <p className='text-gray-700 mt-1 text-sm md:text-[15px]'>
           {fullAddress}
         </p>
-        <p className="text-gray-700 mt-1 text-sm">
+        <p className='text-gray-700 mt-1 text-sm'>
           Phone: {addr.PhNb || "Not listed"}
         </p>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+        <div className='mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm'>
           <div>
-            <p className="text-gray-500">Registration Type</p>
-            <p className="font-semibold text-gray-800">{registrationType}</p>
+            <p className='text-gray-500'>Registration Type</p>
+            <p className='font-semibold text-gray-800'>{registrationType}</p>
           </div>
           <div>
-            <p className="text-gray-500">Most Recent Filing</p>
-            <p className="font-semibold text-gray-800">{filingDate}</p>
+            <p className='text-gray-500'>Most Recent Filing</p>
+            <p className='font-semibold text-gray-800'>{filingDate}</p>
           </div>
           <div>
-            <p className="text-gray-500">
+            <p className='text-gray-500'>
               Firm Size by Assets Under Management
             </p>
-            <p className="font-semibold text-gray-800">{firmSizeLabel}</p>
+            <p className='font-semibold text-gray-800'>{firmSizeLabel}</p>
           </div>
         </div>
 
         {mainWebsite && (
-          <div className="mt-4 text-sm">
-            <span className="text-gray-500 mr-1">Primary Website:</span>
+          <div className='mt-4 text-sm'>
+            <span className='text-gray-500 mr-1'>Primary Website:</span>
             <a
               href={mainWebsite}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[#0F4C81] underline break-all"
-            >
+              target='_blank'
+              rel='noreferrer'
+              className='text-[#0F4C81] underline break-all'>
               {mainWebsite}
             </a>
           </div>
@@ -272,24 +301,24 @@ export default function AdvisorDetails() {
       </div>
 
       {/* ================================================== */}
-      {/*                 BASIC INFO TABLE                  */}
+      {/*                 BASIC INFO TABLE                   */}
       {/* ================================================== */}
-      <CardSection title="Basic Firm Information">
-        <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+      <CardSection title='Basic Firm Information'>
+        <table className='w-full text-sm border border-gray-200 rounded-lg overflow-hidden'>
           <tbody>
-            <Row label="Legal Name" value={info.LegalNm} />
-            <Row label="Business Name" value={info.BusNm} />
-            <Row label="Address" value={fullAddress} />
-            <Row label="Phone" value={addr.PhNb || "Not listed"} />
-            <Row label="Organization Type" value={item3A.OrgFormNm} />
-            <Row label="Fiscal Year End" value={item3B?.Q3B} />
-            <Row label="Country of Organization" value={item3C?.CntryNm} />
+            <Row label='Legal Name' value={info.LegalNm} />
+            <Row label='Business Name' value={info.BusNm} />
+            <Row label='Address' value={fullAddress} />
+            <Row label='Phone' value={addr.PhNb || "Not listed"} />
+            <Row label='Organization Type' value={item3A.OrgFormNm} />
+            <Row label='Fiscal Year End' value={item3B?.Q3B} />
+            <Row label='Country of Organization' value={item3C?.CntryNm} />
             <Row
-              label="Alternate Offices (DBA or Branches)"
+              label='Alternate Offices (DBA or Branches)'
               value={item1.Q1F5 ?? "0"}
             />
             <Row
-              label="Umbrella Registration"
+              label='Umbrella Registration'
               value={info.UmbrRgstn === "Y" ? "Yes" : "No"}
             />
           </tbody>
@@ -297,21 +326,20 @@ export default function AdvisorDetails() {
       </CardSection>
 
       {/* ================================================== */}
-      {/*                     WEBSITES                      */}
+      {/*                     WEBSITES                       */}
       {/* ================================================== */}
-      <CardSection title="Websites">
+      <CardSection title='Websites'>
         {allWebsites.length === 0 ? (
-          <p className="text-sm text-gray-600">No websites reported.</p>
+          <p className='text-sm text-gray-600'>No websites reported.</p>
         ) : (
-          <ul className="list-disc pl-5 space-y-1 text-sm">
+          <ul className='list-disc pl-5 space-y-1 text-sm'>
             {allWebsites.map((url, idx) => (
               <li key={idx}>
                 <a
                   href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[#0F4C81] underline break-all"
-                >
+                  target='_blank'
+                  rel='noreferrer'
+                  className='text-[#0F4C81] underline break-all'>
                   {url}
                 </a>
               </li>
@@ -321,72 +349,391 @@ export default function AdvisorDetails() {
       </CardSection>
 
       {/* ================================================== */}
-      {/*                 OTHER BUSINESS NAMES              */}
+      {/*                 OTHER BUSINESS NAMES               */}
       {/* ================================================== */}
-      <CardSection title="Other Business Names">
+      <CardSection title='Other Business Names'>
         {Array.isArray(otherNames) && otherNames.length > 0 ? (
-          <ul className="list-disc pl-5 space-y-1 text-sm">
+          <ul className='list-disc pl-5 space-y-1 text-sm'>
             {otherNames.map((n, idx) => (
               <li key={idx}>
-                {n["1a-businessName"] || n.businessName || JSON.stringify(n)}
+                {n["1a-businessName"] || n.businessName || "Data not provided"}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">None reported.</p>
+          <p className='text-sm text-gray-600'>None reported.</p>
+        )}
+      </CardSection>
+
+      <CardSection title='Other Business Activities'>
+        {altBusActs &&
+        (Object.keys(altBusActs).length > 0 ||
+          Object.values(altBusActs).some(
+            (value) => value !== null && value !== undefined,
+          )) ? (
+          <ul>
+            {altBusActs.Q6B1 && (
+              <li className={handleOutput(altBusActs.Q6B1)}>
+                This Firm Engages in Other Business Activities.
+              </li>
+            )}
+            {altBusActs.Q6B3 && (
+              <li className={handleOutput(altBusActs.Q6B3)}>
+                This Firm Sells Products or Services other than Investment
+                Advice to Clients.
+              </li>
+            )}
+            {altBusActs.Q6B2 && (
+              <li className={handleOutput(altBusActs.Q6B2)}>
+                This Firm Sponsors the Wrap Fee Program.
+              </li>
+            )}
+          </ul>
+        ) : (
+          <p className='text-gray-500'>
+            No Alternate Business Activities Reported
+          </p>
+        )}
+      </CardSection>
+
+      <CardSection title='Investing Practices'>
+        <ul>
+          <li>
+            {info.Item5J?.Q5J1
+              ? info.Item5J.Q5J1
+              : "This Firm Provides Investment Advice Only with respect to Limited Types of Investments."}
+          </li>
+          <li>
+            {info.Item5K?.Q5K1
+              ? info.Item5K.Q5K1
+              : "This Firm has Regulatory Assets Under Management attributed to clients other than listed on Form ADV."}
+          </li>
+          <li>
+            {info.Item5K?.Q5K2
+              ? info.Item5K.Q5K2
+              : "This Firm engages in derivative transactions on behalf of any of the separately managed account clients that they advise."}
+          </li>
+        </ul>
+      </CardSection>
+
+      <CardSection title='Information about Advisory Business'>
+        <ul>
+          <li>
+            {info.Item5C?.Q5C1
+              ? `This Firm provided Investment Advisory services to ${info.Item5C.Q5C1} clients in the last fiscal year.`
+              : "This Firm provided Investment Advisory services to clients in the last fiscal year."}
+          </li>
+          {info.Item5C?.Q5C2 >= 100 && (
+            <li>
+              Client number rounded to nearest 100:{" "}
+              {info.Item5C.Q5C2 || "Data not provided"}
+            </li>
+          )}
+          <li>
+            {info.Item5D?.Q5D1F
+              ? `Pooled Investment Vehicles (Other than Investment Companies) in 10/2012 version: ${info.Item5D.Q5D1F}`
+              : "Pooled Investment Vehicles: Data not provided"}
+          </li>
+        </ul>
+      </CardSection>
+
+      <CardSection title='Investment or Brokerage Discretion'>
+        {info.Item8C &&
+        (info.Item8C.Q8C1 === "Y" ||
+          info.Item8C.Q8C2 === "Y" ||
+          info.Item8C.Q8C3 === "Y" ||
+          info.Item8C.Q8C4 === "Y") ? (
+          <ul>
+            {info.Item8C.Q8C1 === "Y" && (
+              <li>Securities to be Bought or Sold for a Clients Account</li>
+            )}
+            {info.Item8C.Q8C2 === "Y" && (
+              <li>
+                Amount of Securities to be Bought or Sold for a Clients Account
+              </li>
+            )}
+            {info.Item8C.Q8C3 === "Y" && (
+              <li>
+                Broker or Dealer for a Purchase or Sale of Securities for a
+                Clients account
+              </li>
+            )}
+            {info.Item8C.Q8C4 === "Y" && (
+              <li>
+                Commission Rates to be paid to a Broker or Dealer for a Clients
+                Account
+              </li>
+            )}
+          </ul>
+        ) : (
+          <p>None Reported</p>
+        )}
+        {info.Item8C && info.Item8C.Q8C3 === "Y" ? (
+          <ul>
+            <li>
+              Are any of the Brokers or Dealers related persons?{" "}
+              {info.Item8D && info.Item8D.Q8D === "Y" ? "Yes" : "No"}
+            </li>
+          </ul>
+        ) : (
+          <span></span>
         )}
       </CardSection>
 
       {/* ================================================== */}
-      {/*                 STAFF BREAKDOWN                   */}
+      {/*                  MARKETING ACTIVITIES              */}
       {/* ================================================== */}
-      <CardSection title="Staff Breakdown">
-        <MiniRow label="Total Advisory Staff" value={item5A.TtlEmp} />
+      <CardSection title='Marketing Activities'>
+        <ul>
+          {marketingInfo.Q5L1A ? (
+            <li className={handleOutput(marketingInfo.Q5L1A)}>
+              This Firm&apos;s Advertisements include Performance results.
+            </li>
+          ) : (
+            <li className='text-gray-500'>
+              No data provided for Performance results.
+            </li>
+          )}
+
+          {marketingInfo.Q5L1D ? (
+            <li className={handleOutput(marketingInfo.Q5L1D)}>
+              This Firm&apos;s Advertisements include Testimonials.
+            </li>
+          ) : (
+            <li className='text-gray-500'>
+              No data provided for Testimonials.
+            </li>
+          )}
+
+          {marketingInfo.Q5L1E ? (
+            <li className={handleOutput(marketingInfo.Q5L1E)}>
+              This Firm&apos;s Advertisements include Endorsements.
+            </li>
+          ) : (
+            <li className='text-gray-500'>
+              No data provided for Endorsements.
+            </li>
+          )}
+
+          {marketingInfo.Q5L2 ? (
+            <li className={handleOutput(marketingInfo.Q5L2)}>
+              This Firm&apos;s Advertisements include Hypothetical Performance.
+            </li>
+          ) : (
+            <li className='text-gray-500'>
+              No data provided for Hypothetical Performance.
+            </li>
+          )}
+
+          {marketingInfo.Q5L3 ? (
+            <li className={handleOutput(marketingInfo.Q5L3)}>
+              This Firm&apos;s Advertisements include Predecessor Performance.
+            </li>
+          ) : (
+            <li className='text-gray-500'>
+              No data provided for Predecessor Performance.
+            </li>
+          )}
+        </ul>
+      </CardSection>
+
+      {/* <CardSection title="Financial Industry Affiliations and/or Related Persons">
+     
+        {financialAffiliations &&
+        (Object.keys(financialAffiliations).length > 0 ||
+          Object.values(financialAffiliations).some(
+            (value) => value !== null && value !== undefined,
+          )) ? (
+          <ul>
+          
+            {financialAffiliations.Q7A1 && (
+              <li className={handleOutput(financialAffiliations.Q7A1)}>
+                Broker Dealer, Municipal Securities Dealer, or Government
+                Securities Broker or Dealer.
+              </li>
+            )}
+            {financialAffiliations.Q7A9 && (
+              <li className={handleOutput(financialAffiliations.Q7A9)}>
+                Trust Companies
+              </li>
+            )}
+            {financialAffiliations.Q7A10 && (
+              <li className={handleOutput(financialAffiliations.Q7A10)}>
+                Accountant(s)
+              </li>
+            )}
+            {financialAffiliations.Q7A11 && (
+              <li className={handleOutput(financialAffiliations.Q7A11)}>
+                Lawyer/Law firms
+              </li>
+            )}
+            {financialAffiliations.Q7A12 && (
+              <li className={handleOutput(financialAffiliations.Q7A12)}>
+                Insurance Company/Agencies
+              </li>
+            )}
+            {financialAffiliations.Q7A13 && (
+              <li className={handleOutput(financialAffiliations.Q7A13)}>
+                Pensions Consultant
+              </li>
+            )}
+            {financialAffiliations.Q7A14 && (
+              <li className={handleOutput(financialAffiliations.Q7A14)}>
+                Real Estate Broker/Dealer(s)
+              </li>
+            )}
+            {financialAffiliations.Q7A16 && (
+              <li className={handleOutput(financialAffiliations.Q7A16)}>
+                Sponsor, General Partner, Managing Member of Pooled Investment
+                Vehicles.
+              </li>
+            )}
+            {financialAffiliations.Q7B && (
+              <li className={handleOutput(financialAffiliations.Q7B)}>
+                Is an Advisor to any Private Fund.
+              </li>
+            )}
+          </ul>
+        ) : (
+          <p className="text-gray-500">
+            No Affiliations or Related Persons Reported
+          </p>
+        )}
+      </CardSection> */}
+
+      {/* ================================================== */}
+      {/*                 STAFF BREAKDOWN                    */}
+      {/* ================================================== */}
+      <CardSection title='Staff Breakdown'>
+        <MiniRow label='Total Advisory Staff' value={item5A.TtlEmp} />
         <MiniRow
-          label="Staff performing Investment Advisory Functions including Research"
+          label='Staff performing Investment Advisory Functions including Research'
           value={item5B.Q5B1}
         />
         <MiniRow
-          label="Staff Registered with State Securities Authorities"
+          label='Staff Registered with State Securities Authorities'
           value={item5B.Q5B3}
         />
         <MiniRow
-          label="Staff Licensed as Insurance Agents"
+          label='Staff Licensed as Insurance Agents'
           value={item5B.Q5B5}
         />
-        <p className="text-[12px] text-gray-500 mt-2">
+        <p className='text-[12px] text-gray-500 mt-2'>
           (Some staff may perform multiple roles.)
         </p>
       </CardSection>
 
       {/* ================================================== */}
-      {/*                  CLIENT INFORMATION               */}
+      {/*                  CLIENT INFORMATION                */}
       {/* ================================================== */}
-      <CardSection title="Client & Account Summary">
+      <CardSection title='Client & Account Summary'>
         <MiniRow
-          label="Total Regulatory Assets Under Management"
+          label='Total Regulatory Assets Under Management'
           value={formatMoney(item5F.Q5F2C)}
         />
 
-        <MiniRow label="Total Accounts Managed" value={item5F.Q5F2D} />
+        <MiniRow label='Total Accounts Managed' value={item5F.Q5F2D} />
 
         <MiniRow
-          label="Discretionary Assets"
+          label='Discretionary Assets'
           value={formatMoney(item5F.Q5F2A)}
         />
 
         <MiniRow
-          label="Non-Discretionary Assets"
+          label='Non-Discretionary Assets'
           value={formatMoney(item5F.Q5F2B)}
         />
 
-        <MiniRow label="Approximate Number of Clients" value={item5D.Q5DA2} />
+        <MiniRow label='Approximate Number of Clients' value={item5D.Q5DA2} />
+      </CardSection>
+
+      <CardSection title='Client Type'>
+        <div className='space-y-2'>
+          {/* Display Individuals Count */}
+          <MiniRow label='Individuals' value={totalInd || "Not reported"} />
+
+          {/* Average AUM for Individuals */}
+          <MiniRow
+            label='Average Assets Under Management for Individuals'
+            value={avgIndAum > 0 ? formatMoney(avgIndAum) : "Not reported"}
+          />
+
+          {/* Display High Net Worth Individuals Count */}
+          <MiniRow
+            label='High Net Worth Individuals'
+            value={totalHnwInd || "Not reported"}
+          />
+
+          {/* Average AUM for High Net Worth Individuals */}
+          <MiniRow
+            label='Average Assets Under Management for High Net Worth Individuals'
+            value={avgHnwAum > 0 ? formatMoney(avgHnwAum) : "Not reported"}
+          />
+
+          {/* Display Other Management details */}
+          {(pSharing || charOrgs || BTI || InvComp || Pooled || Insure) && (
+            <div className='pt-3'>
+              <p className='font-semibold text-gray-800'>Other Management</p>
+              <div className='mt-2 space-y-1'>
+                {pSharing && (
+                  <MiniRow
+                    label='Pension and Profit Sharing Plans'
+                    value={pSharing}
+                  />
+                )}
+                {charOrgs && (
+                  <MiniRow label='Charitable Organizations' value={charOrgs} />
+                )}
+                {BTI && (
+                  <MiniRow label='Banking or Thrift Institutions' value={BTI} />
+                )}
+                {InvComp && (
+                  <MiniRow label='Investment Companies' value={InvComp} />
+                )}
+                {Pooled && (
+                  <MiniRow label='Pooled Investment Vehicle' value={Pooled} />
+                )}
+                {Insure && (
+                  <MiniRow label='Insurance Companies' value={Insure} />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Display Non-Discretionary Assets */}
+          <MiniRow
+            label='Total Amount of Non-Discretionary Assets'
+            value={formatMoney(totalNonDesc)}
+          />
+        </div>
+      </CardSection>
+
+      <CardSection title='Amount of Clients Engaged For Financial Planning Services Last Year'>
+        {altService.Q5H || altService.Q5HMT500 ? (
+          <div>
+            <h5 className='font-semibold'>
+              Amount of Clients Engaged For Financial Planning Services Last
+              Year:
+            </h5>
+            <ul className='services'>
+              <li className={handleString(altService.Q5H)}>
+                Range: {altService.Q5H || "Data not provided"}
+              </li>
+              <li className={handleNum(altService.Q5HMT500)}>
+                Rounded to nearest 500:
+                {altService.Q5HMT500 || "Data not provided"}
+              </li>
+            </ul>
+          </div>
+        ) : (
+          <p className='text-gray-600'>Data not provided</p>
+        )}
       </CardSection>
 
       {/* ================================================== */}
-      {/*              COMPENSATION AGREEMENTS              */}
+      {/*              COMPENSATION AGREEMENTS               */}
       {/* ================================================== */}
-      <CardSection title="Compensation Agreements">
+      <CardSection title='Compensation Agreements'>
         <BulletList>
           {item5E.Q5E1 === "Y" && (
             <li>Takes percentage of assets under management</li>
@@ -398,15 +745,15 @@ export default function AdvisorDetails() {
           {item5E.Q5E6 === "Y" && <li>Performance-based fees</li>}
           {item5E.Q5E7 === "Y" && <li>Other compensation arrangements</li>}
           {noYes(item5E) && (
-            <li className="text-gray-500">No compensation methods reported.</li>
+            <li className='text-gray-500'>No compensation methods reported.</li>
           )}
         </BulletList>
       </CardSection>
 
       {/* ================================================== */}
-      {/*           ADVISORY SERVICES OFFERED               */}
+      {/*           ADVISORY SERVICES OFFERED                */}
       {/* ================================================== */}
-      <CardSection title="Advisory Services Offered">
+      <CardSection title='Advisory Services Offered'>
         <BulletList>
           {item5G.Q5G1 === "Y" && <li>Financial Planning Services</li>}
           {item5G.Q5G2 === "Y" && (
@@ -422,7 +769,7 @@ export default function AdvisorDetails() {
           {item5G.Q5G11 === "Y" && <li>Educational Seminars or Workshops</li>}
           {item5G.Q5G12 === "Y" && <li>Other Advisory Services</li>}
           {noYes(item5G) && (
-            <li className="text-gray-500">
+            <li className='text-gray-500'>
               No advisory services marked as provided.
             </li>
           )}
@@ -430,11 +777,11 @@ export default function AdvisorDetails() {
       </CardSection>
 
       {/* ================================================== */}
-      {/*                     OWNERSHIP                     */}
+      {/*                     OWNERSHIP                      */}
       {/* ================================================== */}
-      <CardSection title="Direct Owners">
+      <CardSection title='Direct Owners'>
         {Array.isArray(directOwners) && directOwners.length > 0 ? (
-          <ul className="space-y-3 text-sm">
+          <ul className='space-y-3 text-sm'>
             {directOwners.map((owner, idx) => {
               const name = owner.name || owner.ownerName || `Owner #${idx + 1}`;
               const ownerType = owner.ownerType || "Not reported";
@@ -446,30 +793,29 @@ export default function AdvisorDetails() {
               return (
                 <li
                   key={idx}
-                  className="border-b border-gray-200 pb-3 last:border-b-0"
-                >
-                  <div className="font-semibold text-gray-900 text-base">
+                  className='border-b border-gray-200 pb-3 last:border-b-0'>
+                  <div className='font-semibold text-gray-900 text-base'>
                     {name}
                   </div>
                   {title && (
-                    <div className="text-gray-700 text-xs mt-1">
-                      <span className="font-medium">Title: </span>
+                    <div className='text-gray-700 text-xs mt-1'>
+                      <span className='font-medium'>Title: </span>
                       {title}
                     </div>
                   )}
-                  <div className="text-gray-600 text-xs">
-                    <span className="font-medium">Owner Type: </span>
+                  <div className='text-gray-600 text-xs'>
+                    <span className='font-medium'>Owner Type: </span>
                     {ownerType}
                   </div>
                   {ownershipCode && (
-                    <div className="text-gray-600 text-xs">
-                      <span className="font-medium">Ownership Code: </span>
+                    <div className='text-gray-600 text-xs'>
+                      <span className='font-medium'>Ownership Code: </span>
                       {ownershipCode}
                     </div>
                   )}
                   {acquired && (
-                    <div className="text-gray-600 text-xs">
-                      <span className="font-medium">Acquired: </span>
+                    <div className='text-gray-600 text-xs'>
+                      <span className='font-medium'>Acquired: </span>
                       {acquired}
                     </div>
                   )}
@@ -478,19 +824,18 @@ export default function AdvisorDetails() {
             })}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">No direct owners reported.</p>
+          <p className='text-sm text-gray-600'>No direct owners reported.</p>
         )}
       </CardSection>
 
-      <CardSection title="Indirect Owners">
+      <CardSection title='Indirect Owners'>
         {Array.isArray(indirectOwners) && indirectOwners.length > 0 ? (
-          <ul className="space-y-2 text-sm">
+          <ul className='space-y-2 text-sm'>
             {indirectOwners.map((owner, idx) => (
               <li
                 key={idx}
-                className="border-b border-gray-200 pb-2 last:border-b-0"
-              >
-                <div className="font-semibold">
+                className='border-b border-gray-200 pb-2 last:border-b-0'>
+                <div className='font-semibold'>
                   {owner.name ||
                     owner.ownerName ||
                     owner["1a-organizationName"] ||
@@ -500,68 +845,65 @@ export default function AdvisorDetails() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">None reported.</p>
+          <p className='text-sm text-gray-600'>None reported.</p>
         )}
       </CardSection>
 
       {/* ================================================== */}
-      {/*         CUSTODIANS / SMA (Schedule D 5.K)         */}
+      {/*                 CUSTODIANS SECTION                  */}
       {/* ================================================== */}
-      <CardSection title="Custodians for Separately Managed Accounts">
+      <CardSection title='Custodians for Separately Managed Accounts'>
         {Array.isArray(custodians) && custodians.length > 0 ? (
-          <ul className="space-y-2 text-sm">
-            {custodians.map((c, idx) => {
-              const name =
-                c["1a-custodianName"] ||
-                c["custodianName"] ||
-                c["25b-legalName"] ||
-                `Custodian #${idx + 1}`;
-              const loc = c["25d-location"] || c.location || {};
-              const cityState =
-                loc.city && loc.state
-                  ? `${loc.city}, ${loc.state}`
-                  : loc.city || loc.state || "";
+          <ul className='space-y-2 text-sm'>
+            {custodians.map((custodian, idx) => {
+              const legalName =
+                custodian["a-legalName"] || `Custodian #${idx + 1}`;
+              const businessName =
+                custodian["b-businessName"] || "Business Name Not Provided";
+              const loc = custodian["c-locations"]?.[0] || {};
+              const city = loc.city || "City Not Provided";
+              const state = loc.state || "State Not Provided";
 
               return (
                 <li
                   key={idx}
-                  className="border-b border-gray-200 pb-2 last:border-b-0"
-                >
-                  <div className="font-semibold">{name}</div>
-                  {cityState && (
-                    <div className="text-xs text-gray-600">{cityState}</div>
-                  )}
+                  className='border-b border-gray-200 pb-2 last:border-b-0'>
+                  <div className='font-semibold'>
+                    {businessName}: {legalName}
+                  </div>
+                  <div className='text-xs text-gray-600'>
+                    {city}, {state}
+                  </div>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">
+          <p className='text-sm text-gray-600'>
             No custodians for separately managed accounts reported.
           </p>
         )}
       </CardSection>
 
       {/* ================================================== */}
-      {/*                   PRIVATE FUNDS                   */}
+      {/*                   PRIVATE FUNDS                    */}
       {/* ================================================== */}
-      <CardSection title="Private Funds (Schedule D.7.B)">
+      <CardSection title='Private Funds (Schedule D.7.B)'>
         {Array.isArray(privateFunds) && privateFunds.length > 0 ? (
-          <ul className="space-y-2 text-sm">
+          <ul className='space-y-2 text-sm'>
             {privateFunds.map((fund, idx) => (
               <li
                 key={idx}
-                className="border-b border-gray-200 pb-2 last:border-b-0"
-              >
-                <div className="font-semibold">
+                className='border-b border-gray-200 pb-2 last:border-b-0'>
+                <div className='font-semibold'>
                   {fund["1a-nameOfFund"] || `Fund #${idx + 1}`}
                 </div>
-                <div className="text-xs text-gray-600">
+                <div className='text-xs text-gray-600'>
                   Type:{" "}
                   {fund["10-typeOfFund"]?.selectedTypes?.join(", ") ||
                     "Not reported"}
                 </div>
-                <div className="text-xs text-gray-600">
+                <div className='text-xs text-gray-600'>
                   Gross Asset Value:{" "}
                   {fund["11-grossAssetValue"]?.toLocaleString?.() ??
                     fund["11-grossAssetValue"] ??
@@ -571,25 +913,25 @@ export default function AdvisorDetails() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">
+          <p className='text-sm text-gray-600'>
             No private funds reported in Schedule D.7.B.
           </p>
         )}
       </CardSection>
 
       {/* ================================================== */}
-      {/*                     BROCHURES                     */}
+      {/*                     BROCHURES                      */}
       {/* ================================================== */}
-      <CardSection title="Brochures (Part 2)">
+      <CardSection title='Brochures (Part 2)'>
         {Array.isArray(brochureList) && brochureList.length > 0 ? (
-          <ul className="space-y-2 text-sm">
+          <ul className='space-y-2 text-sm'>
             {brochureList.map((b, idx) => (
               <li key={b.versionId || idx}>
-                <span className="font-semibold">
+                <span className='font-semibold'>
                   {b.name || b.title || `Brochure #${idx + 1}`}
                 </span>
                 {b.dateSubmitted && (
-                  <span className="text-xs text-gray-500 ml-1">
+                  <span className='text-xs text-gray-500 ml-1'>
                     ({b.dateSubmitted})
                   </span>
                 )}
@@ -598,10 +940,9 @@ export default function AdvisorDetails() {
                     {" — "}
                     <a
                       href={b.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#0F4C81] underline"
-                    >
+                      target='_blank'
+                      rel='noreferrer'
+                      className='text-[#0F4C81] underline'>
                       View PDF
                     </a>
                   </>
@@ -610,36 +951,36 @@ export default function AdvisorDetails() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-600">No brochures listed.</p>
+          <p className='text-sm text-gray-600'>No brochures listed.</p>
         )}
       </CardSection>
 
       {/* ================================================== */}
-      {/*              FP SERVICES REVIEW                   */}
+      {/*              FP SERVICES REVIEW                    */}
       {/* ================================================== */}
-      <CardSection title="FP Services Review (Judged by Industry Experts)">
+      <CardSection title='FP Services Review (Judged by Industry Experts)'>
         {/* ================= Custodians ================= */}
-        <div className="mb-5 border border-emerald-200 bg-emerald-50 rounded-lg p-4">
-          <p className="font-semibold text-emerald-800">
+        <div className='mb-5 border border-emerald-200 bg-emerald-50 rounded-lg p-4'>
+          <p className='font-semibold text-emerald-800'>
             Custodians for Separately Managed Accounts
           </p>
 
-          <p className="mt-2 text-sm text-gray-700 font-medium">
+          <p className='mt-2 text-sm text-gray-700 font-medium'>
             What This Means For You
           </p>
-          <p className="text-sm text-gray-700">
+          <p className='text-sm text-gray-700'>
             This tells you who is physically holding and safeguarding your
             investment assets. The advisor manages your portfolio, but a
             separate, independent company (the custodian) holds the assets to
             ensure their safety.
           </p>
 
-          <p className="mt-3 text-sm text-gray-700 font-medium">
+          <p className='mt-3 text-sm text-gray-700 font-medium'>
             Our Expert’s Note
           </p>
 
           {hasCustodians ? (
-            <ul className="list-disc ml-6 mt-1 text-sm text-gray-700">
+            <ul className='list-disc ml-6 mt-1 text-sm text-gray-700'>
               {custodians.map((c, idx) => {
                 const name =
                   c["1a-custodianName"] ||
@@ -662,30 +1003,30 @@ export default function AdvisorDetails() {
               })}
             </ul>
           ) : (
-            <p className="text-sm text-gray-700">None Reported</p>
+            <p className='text-sm text-gray-700'>None Reported</p>
           )}
         </div>
 
         {/* ================= SLOA ================= */}
-        <div className="mb-5 border border-amber-200 bg-amber-50 rounded-lg p-4">
-          <p className="font-semibold text-amber-800">
+        <div className='mb-5 border border-amber-200 bg-amber-50 rounded-lg p-4'>
+          <p className='font-semibold text-amber-800'>
             Standing Letter of Instruction
           </p>
 
-          <p className="mt-2 text-sm text-gray-700 font-medium">
+          <p className='mt-2 text-sm text-gray-700 font-medium'>
             What This Means For You
           </p>
-          <p className="text-sm text-gray-700">
+          <p className='text-sm text-gray-700'>
             A Standing Letter of Instruction (SLOI) is a pre-authorization you
             grant, allowing your advisor to move money between your accounts or
             to designated third parties without needing your signed approval for
             every transaction.
           </p>
 
-          <p className="mt-3 text-sm text-gray-700 font-medium">
+          <p className='mt-3 text-sm text-gray-700 font-medium'>
             Our Expert’s Note
           </p>
-          <p className="text-sm text-gray-700">
+          <p className='text-sm text-gray-700'>
             {hasSLOAReported
               ? "Standing instructions reported."
               : "No SLOA Reported"}
@@ -693,24 +1034,24 @@ export default function AdvisorDetails() {
         </div>
 
         {/* ================= Other Business Activities ================= */}
-        <div className="mb-5 border border-blue-200 bg-blue-50 rounded-lg p-4">
-          <p className="font-semibold text-blue-800">
+        <div className='mb-5 border border-blue-200 bg-blue-50 rounded-lg p-4'>
+          <p className='font-semibold text-blue-800'>
             Other Business Activities
           </p>
 
-          <p className="mt-2 text-sm text-gray-700 font-medium">
+          <p className='mt-2 text-sm text-gray-700 font-medium'>
             What This Means For You
           </p>
-          <p className="text-sm text-gray-700">
+          <p className='text-sm text-gray-700'>
             This indicates that the firm or its advisors are involved in other
             financial capacities, such as selling insurance, working as a
             broker, or operating related businesses.
           </p>
 
-          <p className="mt-3 text-sm text-gray-700 font-medium">
+          <p className='mt-3 text-sm text-gray-700 font-medium'>
             Our Expert’s Note
           </p>
-          <p className="text-sm text-gray-700">
+          <p className='text-sm text-gray-700'>
             {hasOtherBusinessActivities
               ? "Conflict of Interest: This is a key transparency point. When a firm has other business activities, it can create situations where the advisor’s compensation may influence the products they recommend."
               : "No Alternate Business Activities Reported"}
@@ -718,12 +1059,12 @@ export default function AdvisorDetails() {
         </div>
 
         {/* ================= Products & Services ================= */}
-        <div className="mb-5 border border-purple-200 bg-purple-50 rounded-lg p-4">
-          <p className="font-semibold text-purple-800">
+        <div className='mb-5 border border-purple-200 bg-purple-50 rounded-lg p-4'>
+          <p className='font-semibold text-purple-800'>
             Products or Services Beyond Investment Advice
           </p>
 
-          <p className="mt-2 text-sm text-gray-700">
+          <p className='mt-2 text-sm text-gray-700'>
             {hasOtherBusinessActivities
               ? "This Firm Sells Products or Services other than Investment Advice to Clients."
               : "This Firm Does Not Sell Products or Services other than Investment Advice to Clients."}
@@ -731,35 +1072,35 @@ export default function AdvisorDetails() {
         </div>
 
         {/* ================= Things To Know ================= */}
-        <div className="border border-gray-200 bg-gray-50 rounded-lg p-4">
-          <p className="font-semibold text-gray-800 mb-3">
+        <div className='border border-gray-200 bg-gray-50 rounded-lg p-4'>
+          <p className='font-semibold text-gray-800 mb-3'>
             ---- Things To Know ----
           </p>
 
-          <div className="mb-3">
-            <p className="font-semibold">
+          <div className='mb-3'>
+            <p className='font-semibold'>
               Proprietary Interest in Client Transactions
             </p>
-            <p className="text-sm text-gray-700">
+            <p className='text-sm text-gray-700'>
               {hasProprietaryInterest
                 ? "Buys or Sells for Self: Securities (other than shares of mutual funds) that are also recommended to Advisory Clients."
                 : "None Reported"}
             </p>
           </div>
 
-          <div className="mb-3">
-            <p className="font-semibold">
+          <div className='mb-3'>
+            <p className='font-semibold'>
               Sales Interest in Client Transactions
             </p>
-            <p className="text-sm text-gray-700">
+            <p className='text-sm text-gray-700'>
               {hasSalesInterest ? "Sales interest reported." : "None Reported"}
             </p>
           </div>
 
-          <div className="mb-3">
-            <p className="font-semibold">Investment or Brokerage Discretion</p>
+          <div className='mb-3'>
+            <p className='font-semibold'>Investment or Brokerage Discretion</p>
             {hasInvestmentDiscretion ? (
-              <ul className="list-disc ml-6 text-sm text-gray-700">
+              <ul className='list-disc ml-6 text-sm text-gray-700'>
                 <li>Securities to be Bought or Sold for a Client’s Account</li>
                 <li>
                   Amount of Securities to be Bought or Sold for a Client’s
@@ -767,13 +1108,39 @@ export default function AdvisorDetails() {
                 </li>
               </ul>
             ) : (
-              <p className="text-sm text-gray-700">None Reported</p>
+              <p className='text-sm text-gray-700'>None Reported</p>
             )}
           </div>
 
           <div>
-            <p className="font-semibold">Wrap Fee Program Participation</p>
-            <p className="text-sm text-gray-700">
+            <p className='font-semibold'>Wrap Fee Program Participation</p>
+
+            <p className='mt-2 text-sm text-gray-700 font-medium'>
+              What this means for you
+            </p>
+
+            <p className='text-sm text-gray-700'>
+              A wrap fee program is an investment account arrangement where a
+              single, “all-inclusive” fee is charged to cover most of the costs
+              of managing your investments.
+            </p>
+
+            <p className='text-sm text-gray-700 mt-2'>
+              Instead of paying separate charges, you pay one fee (usually a
+              percentage of assets under management, such as 1–3%) that
+              typically covers:
+              <ul className='list-disc pl-5 mt-2 text-sm'>
+                <li>Investment management/advice</li>
+                <li>Trading/transaction costs</li>
+                <li>Custodial/administrative services</li>
+                <li>Periodic reporting and reviews</li>
+              </ul>
+            </p>
+
+            <p className='mt-3 text-sm text-gray-700 font-medium'>
+              Our Expert’s Note
+            </p>
+            <p className='text-sm text-gray-700'>
               {participatesInWrapFee
                 ? "Participates in Wrap Fee Program."
                 : "Does not Participate."}
@@ -783,20 +1150,20 @@ export default function AdvisorDetails() {
       </CardSection>
 
       {/* ================================================== */}
-      {/*                    DISCLOSURES                    */}
+      {/*                    DISCLOSURES                     */}
       {/* ================================================== */}
-      <CardSection title="Disclosures">
-        <p className="text-sm text-gray-700">
+      <CardSection title='Disclosures'>
+        <p className='text-sm text-gray-700'>
           Based on ADV Part 1A &amp; 1B, this firm reported{" "}
-          <span className="font-semibold">no criminal disclosures</span> in the
+          <span className='font-semibold'>no criminal disclosures</span> in the
           latest filing.
         </p>
 
-        <div className="mt-4">
-          <h3 className="font-semibold text-sm mb-1">
+        <div className='mt-4'>
+          <h3 className='font-semibold text-sm mb-1'>
             Standing Letter of Instruction (SLOA)
           </h3>
-          <p className="text-sm text-gray-700">
+          <p className='text-sm text-gray-700'>
             {hasSLOA ? "Standing instructions reported." : "No SLOA reported."}
           </p>
         </div>
@@ -809,18 +1176,18 @@ export default function AdvisorDetails() {
 
 function CardSection({ title, children }) {
   return (
-    <section className="mt-10 border border-gray-200 rounded-xl bg-white p-5 md:p-6 shadow-sm">
-      <h2 className="text-lg md:text-xl font-semibold mb-4">{title}</h2>
-      <div className="border-t border-gray-200 pt-4 text-sm">{children}</div>
+    <section className='mt-10 border border-gray-200 rounded-xl bg-white p-5 md:p-6 shadow-sm'>
+      <h2 className='text-lg md:text-xl font-semibold mb-4'>{title}</h2>
+      <div className='border-t border-gray-200 pt-4 text-sm'>{children}</div>
     </section>
   );
 }
 
 function Row({ label, value }) {
   return (
-    <tr className="border-b border-gray-200 last:border-b-0">
-      <td className="bg-gray-50 px-3 py-2 font-medium w-56">{label}</td>
-      <td className="px-3 py-2 text-gray-800">
+    <tr className='border-b border-gray-200 last:border-b-0'>
+      <td className='bg-gray-50 px-3 py-2 font-medium w-56'>{label}</td>
+      <td className='px-3 py-2 text-gray-800'>
         {value !== undefined && value !== null && value !== ""
           ? value
           : "Not reported"}
@@ -831,9 +1198,9 @@ function Row({ label, value }) {
 
 function MiniRow({ label, value }) {
   return (
-    <div className="flex justify-between text-sm border-b border-gray-200 last:border-b-0 py-1.5">
-      <span className="text-gray-700">{label}</span>
-      <span className="font-medium text-gray-900">
+    <div className='flex justify-between text-sm border-b border-gray-200 last:border-b-0 py-1.5'>
+      <span className='text-gray-700'>{label}</span>
+      <span className='font-medium text-gray-900'>
         {value !== undefined && value !== null && value !== ""
           ? value
           : "Not reported"}
@@ -843,7 +1210,7 @@ function MiniRow({ label, value }) {
 }
 
 function BulletList({ children }) {
-  return <ul className="list-disc pl-5 space-y-1 text-sm">{children}</ul>;
+  return <ul className='list-disc pl-5 space-y-1 text-sm'>{children}</ul>;
 }
 
 function noYes(obj) {
