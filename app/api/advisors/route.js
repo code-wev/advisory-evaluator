@@ -2,14 +2,12 @@ import { NextResponse } from "next/server";
 
 function buildFeeLabel(item5E = {}) {
   const fees = [];
-
   if (item5E.Q5E1 === "Y") fees.push("AUM-based");
   if (item5E.Q5E2 === "Y") fees.push("Hourly");
   if (item5E.Q5E3 === "Y") fees.push("Subscription");
   if (item5E.Q5E4 === "Y") fees.push("Fixed");
   if (item5E.Q5E5 === "Y") fees.push("Commission");
   if (item5E.Q5E6 === "Y") fees.push("Performance-based");
-
   return fees.length ? fees.join(", ") : "Not disclosed";
 }
 
@@ -23,26 +21,20 @@ export async function GET(req) {
     const location = (searchParams.get("location") || "").trim();
 
     const apiKey = process.env.SEC_API_KEY;
-
     let query;
 
-    // -------------------------------
-    // CRD NUMBER SEARCH (EXACT)
-    // -------------------------------
+    // CRD NUMBER SEARCH
     if (isCRD(location)) {
       query = `Info.FirmCrdNb:${location}`;
     }
-    // -------------------------------
-    // FIRM NAME OR LOCATION SEARCH
-    // -------------------------------
+    // FIRM NAME OR LOCATION SEARCH (WITH PARTIAL MATCH)
     else {
-      const term = location.toUpperCase();
-
+      const term = location.toLowerCase();
       query = `
-        Info.LegalNm:"${term}"
-        OR MainAddr.City:"${term}"
-        OR MainAddr.State:${term}
-        OR MainAddr.PostlCd:${location}*
+        Info.LegalNm:"*${term}*"
+        OR MainAddr.City:"*${term}*"
+        OR MainAddr.State:"*${term}*"
+        OR MainAddr.PostlCd:"*${location}*"
       `;
     }
 
