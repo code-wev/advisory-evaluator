@@ -9,9 +9,28 @@ export default function AdvisorDetails() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  function handleOutput(string) {
-    if (string === "Y") return "shown"; // Show if string equals "Y"
-    return "hidden"; // Hide if string is anything other than "Y"
+  function handleOutput(flag) {
+    return flag === "Y" ? "" : "hidden";
+  }
+
+  function handleString(value) {
+    if (value === undefined || value === null || value === "") {
+      return "hidden";
+    }
+    return "";
+  }
+
+  function handleNum(value) {
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      isNaN(Number(value)) ||
+      Number(value) === 0
+    ) {
+      return "hidden";
+    }
+    return "";
   }
 
   // ------------------- FETCH FIRM DATA -------------------
@@ -89,7 +108,7 @@ export default function AdvisorDetails() {
   const addr = filing.MainAddr || {};
   const formPart1A = filing.FormInfo?.Part1A || {};
   const part1A = data.part1A || {}; // from /part-1a/{crd}
-  const altService = data.altService || {};
+  // const altService = data.altService || {};
   const marketingInfo = info.Item5L || {};
 
   const altBusActs = filing.FormInfo?.Part1A?.Item6A || {};
@@ -107,13 +126,16 @@ export default function AdvisorDetails() {
   const item5F = formPart1A.Item5F || {};
   const item5G = formPart1A.Item5G || {};
   const item5H = formPart1A.Item5H || {};
+  const item5J = formPart1A.Item5J || {};
+  const item5K = formPart1A.Item5K || {};
   const filingDate = filing.Filing?.[0]?.Dt || "";
 
-  const totalInd = part1A["5f-individualsClients"] || 0; // total individuals clients
-  const totalAUMInd = part1A["5f-individualsAum"] || 0; // total AUM for individuals
+  // ---- Client counts & AUM from Item 5.D (same as old site) ----
+  const totalInd = item5D.Q5DA1 ?? 0; // Individuals (number of clients)
+  const totalAUMInd = item5D.Q5DA3 ?? 0; // Individuals AUM
 
-  const totalHnwInd = part1A["5f-highNetWorthIndividualsClients"] || 0; // total HNWIs
-  const totalHnwIndAUM = part1A["5f-highNetWorthIndividualsAum"] || 0; // total AUM for HNWIs
+  const totalHnwInd = item5D.Q5DB1 ?? 0; // High Net Worth Individuals (number of clients)
+  const totalHnwIndAUM = item5D.Q5DB3 ?? 0; // High Net Worth Individuals AUM
 
   // Calculating average AUM for Individuals
   const avgIndAum = totalInd > 0 ? totalAUMInd / totalInd : 0;
@@ -398,41 +420,47 @@ export default function AdvisorDetails() {
 
       <CardSection title='Investing Practices'>
         <ul>
-          <li>
-            {info.Item5J?.Q5J1
-              ? info.Item5J.Q5J1
-              : "This Firm Provides Investment Advice Only with respect to Limited Types of Investments."}
+          {/* 5J – Limited types of investments */}
+          <li className={handleOutput(item5J.Q5J1)}>
+            This Firm Provides Investment Advice Only with respect to Limited
+            Types of Investments.
           </li>
-          <li>
-            {info.Item5K?.Q5K1
-              ? info.Item5K.Q5K1
-              : "This Firm has Regulatory Assets Under Management attributed to clients other than listed on Form ADV."}
+
+          {/* 5K – Other clients / SMA activities */}
+          <li className={handleOutput(item5K.Q5K1)}>
+            This Firm has Regulatory Assets Under Management attributed to
+            clients other than listed on Form ADV.
           </li>
-          <li>
-            {info.Item5K?.Q5K2
-              ? info.Item5K.Q5K2
-              : "This Firm engages in derivative transactions on behalf of any of the separately managed account clients that they advise."}
+
+          <li className={handleOutput(item5K.Q5K2)}>
+            This Firm engages in borrowing transactions on behalf of any of the
+            separately managed account clients that they advise.
+          </li>
+
+          <li className={handleOutput(item5K.Q5K3)}>
+            This Firm engages in derivative transactions on behalf of any of the
+            separately managed account clients that they advise.
           </li>
         </ul>
       </CardSection>
 
       <CardSection title='Information about Advisory Business'>
         <ul>
-          <li>
-            {info.Item5C?.Q5C1
-              ? `This Firm provided Investment Advisory services to ${info.Item5C.Q5C1} clients in the last fiscal year.`
-              : "This Firm provided Investment Advisory services to clients in the last fiscal year."}
+          {/* Q5C1 – number of clients */}
+          <li className={handleString(item5C.Q5C1)}>
+            This Firm provided Investment Advisory services to {item5C.Q5C1}{" "}
+            clients in the last fiscal year.
           </li>
-          {info.Item5C?.Q5C2 >= 100 && (
-            <li>
-              Client number rounded to nearest 100:{" "}
-              {info.Item5C.Q5C2 || "Data not provided"}
-            </li>
+
+          {/* Q5C2 – rounded to nearest 100 (only if >= 100) */}
+          {item5C.Q5C2 >= 100 && (
+            <li>Client number rounded to nearest 100: {item5C.Q5C2}</li>
           )}
-          <li>
-            {info.Item5D?.Q5D1F
-              ? `Pooled Investment Vehicles (Other than Investment Companies) in 10/2012 version: ${info.Item5D.Q5D1F}`
-              : "Pooled Investment Vehicles: Data not provided"}
+
+          {/* Q5D1F – pooled investment vehicles */}
+          <li className={handleNum(item5D.Q5D1F)}>
+            Pooled Investment Vehicles (Other than Investment Companies) in
+            10/2012 version: {item5D.Q5D1F}
           </li>
         </ul>
       </CardSection>
@@ -709,19 +737,16 @@ export default function AdvisorDetails() {
       </CardSection>
 
       <CardSection title='Amount of Clients Engaged For Financial Planning Services Last Year'>
-        {altService.Q5H || altService.Q5HMT500 ? (
+        {item5H.Q5H || item5H.Q5HMT500 ? (
           <div>
             <h5 className='font-semibold'>
               Amount of Clients Engaged For Financial Planning Services Last
               Year:
             </h5>
             <ul className='services'>
-              <li className={handleString(altService.Q5H)}>
-                Range: {altService.Q5H || "Data not provided"}
-              </li>
-              <li className={handleNum(altService.Q5HMT500)}>
-                Rounded to nearest 500:
-                {altService.Q5HMT500 || "Data not provided"}
+              <li className={handleString(item5H.Q5H)}>Range: {item5H.Q5H}</li>
+              <li className={handleNum(item5H.Q5HMT500)}>
+                Rounded to nearest 500: {item5H.Q5HMT500}
               </li>
             </ul>
           </div>
@@ -958,7 +983,7 @@ export default function AdvisorDetails() {
       {/* ================================================== */}
       {/*              FP SERVICES REVIEW                    */}
       {/* ================================================== */}
-      <CardSection title='FP Services Review (Judged by Industry Experts)'>
+      <CardSection title='Notable Items'>
         {/* ================= Custodians ================= */}
         <div className='mb-5 border border-emerald-200 bg-emerald-50 rounded-lg p-4'>
           <p className='font-semibold text-emerald-800'>
@@ -983,12 +1008,17 @@ export default function AdvisorDetails() {
             <ul className='list-disc ml-6 mt-1 text-sm text-gray-700'>
               {custodians.map((c, idx) => {
                 const name =
-                  c["1a-custodianName"] ||
-                  c["custodianName"] ||
+                  c["a-legalName"] ||
+                  c["b-businessName"] ||
                   c["25b-legalName"] ||
+                  c["custodianName"] ||
                   `Custodian #${idx + 1}`;
 
-                const loc = c["25d-location"] || c.location || {};
+                const loc =
+                  c["c-locations"]?.[0] ||
+                  c["25d-location"] ||
+                  c.location ||
+                  {};
                 const cityState =
                   loc.city && loc.state
                     ? `${loc.city}, ${loc.state}`
@@ -1007,31 +1037,31 @@ export default function AdvisorDetails() {
           )}
         </div>
 
-        {/* ================= SLOA ================= */}
-        <div className='mb-5 border border-amber-200 bg-amber-50 rounded-lg p-4'>
-          <p className='font-semibold text-amber-800'>
-            Standing Letter of Instruction
-          </p>
+        {/* ================= SLOA (only if reported) ================= */}
+        {hasSLOAReported && (
+          <div className='mb-5 border border-amber-200 bg-amber-50 rounded-lg p-4'>
+            <p className='font-semibold text-amber-800'>
+              Standing Letter of Instruction
+            </p>
 
-          <p className='mt-2 text-sm text-gray-700 font-medium'>
-            What This Means For You
-          </p>
-          <p className='text-sm text-gray-700'>
-            A Standing Letter of Instruction (SLOI) is a pre-authorization you
-            grant, allowing your advisor to move money between your accounts or
-            to designated third parties without needing your signed approval for
-            every transaction.
-          </p>
+            <p className='mt-2 text-sm text-gray-700 font-medium'>
+              What This Means For You
+            </p>
+            <p className='text-sm text-gray-700'>
+              A Standing Letter of Instruction (SLOI) is a pre-authorization you
+              grant, allowing your advisor to move money between your accounts
+              or to designated third parties without needing your signed
+              approval for every transaction.
+            </p>
 
-          <p className='mt-3 text-sm text-gray-700 font-medium'>
-            Our Expert’s Note
-          </p>
-          <p className='text-sm text-gray-700'>
-            {hasSLOAReported
-              ? "Standing instructions reported."
-              : "No SLOA Reported"}
-          </p>
-        </div>
+            <p className='mt-3 text-sm text-gray-700 font-medium'>
+              Our Expert’s Note
+            </p>
+            <p className='text-sm text-gray-700'>
+              Standing instructions reported.
+            </p>
+          </div>
+        )}
 
         {/* ================= Other Business Activities ================= */}
         <div className='mb-5 border border-blue-200 bg-blue-50 rounded-lg p-4'>
@@ -1071,7 +1101,7 @@ export default function AdvisorDetails() {
           </p>
         </div>
 
-        {/* ================= Things To Know ================= */}
+        {/* ================= Summary: Things To Know ================= */}
         <div className='border border-gray-200 bg-gray-50 rounded-lg p-4'>
           <p className='font-semibold text-gray-800 mb-3'>
             ---- Things To Know ----
@@ -1129,13 +1159,13 @@ export default function AdvisorDetails() {
               Instead of paying separate charges, you pay one fee (usually a
               percentage of assets under management, such as 1–3%) that
               typically covers:
-              <ul className='list-disc pl-5 mt-2 text-sm'>
-                <li>Investment management/advice</li>
-                <li>Trading/transaction costs</li>
-                <li>Custodial/administrative services</li>
-                <li>Periodic reporting and reviews</li>
-              </ul>
             </p>
+            <ul className='list-disc pl-5 mt-2 text-sm text-gray-700'>
+              <li>Investment management/advice</li>
+              <li>Trading/transaction costs</li>
+              <li>Custodial/administrative services</li>
+              <li>Periodic reporting and reviews</li>
+            </ul>
 
             <p className='mt-3 text-sm text-gray-700 font-medium'>
               Our Expert’s Note
@@ -1144,6 +1174,58 @@ export default function AdvisorDetails() {
               {participatesInWrapFee
                 ? "Participates in Wrap Fee Program."
                 : "Does not Participate."}
+            </p>
+          </div>
+        </div>
+
+        {/* ======== Detailed “What this means for you” sections ======== */}
+        <div className='mt-8 space-y-8'>
+          {/* Proprietary Interest – explanation */}
+          <div>
+            <h3 className='font-semibold text-base'>
+              Proprietary Interest in Client Transactions
+            </h3>
+            <p className='mt-1 text-sm font-medium'>What this means for you</p>
+            <p className='mt-1 text-sm text-gray-700'>
+              This item looks at whether the adviser or its related persons have
+              a financial or ownership interest in transactions carried out for
+              clients. Advisers may trade securities for themselves that they
+              also recommend to clients. This can create a potential conflict of
+              interest if the adviser or a related person has a proprietary
+              (ownership) interest in the securities or other investment
+              products being recommended.
+            </p>
+          </div>
+
+          {/* Sales Interest – explanation */}
+          <div>
+            <h3 className='font-semibold text-base'>
+              Sales Interest in Client Transactions
+            </h3>
+            <p className='mt-1 text-sm font-medium'>What this means for you</p>
+            <p className='mt-1 text-sm text-gray-700'>
+              This item refers to whether the adviser or its related persons
+              have a sales-based financial incentive tied to transactions
+              executed in client accounts. This may create a conflict of
+              interest because recommendations could be influenced by sales
+              compensation rather than being driven purely by client needs.
+            </p>
+          </div>
+
+          {/* Investment or Brokerage Discretion – explanation */}
+          <div>
+            <h3 className='font-semibold text-base'>
+              Investment or Brokerage Discretion
+            </h3>
+            <p className='mt-1 text-sm font-medium'>What this means for you</p>
+            <p className='mt-1 text-sm text-gray-700'>
+              This item describes whether the adviser has authority to make
+              investment decisions or place trades on a client’s behalf without
+              getting prior approval for every transaction. It may also involve
+              discretion to set or negotiate commission rates paid to a broker
+              or dealer for a client’s securities transactions. This discretion
+              can present a potential conflict of interest if it affects how or
+              where trades are executed.
             </p>
           </div>
         </div>

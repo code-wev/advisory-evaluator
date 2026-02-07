@@ -102,212 +102,236 @@ You should understand:
 
 By understanding regulatory filings, fee structures, firm history, and advisor experience, you can confidently choose a financial advisor who aligns with your expectations. Evaluation is a holistic process — not a one-step decision.
 
-    `
+    `,
   },
 
   // ======================= ARTICLE 2 =========================
   {
-    slug: "mastering-financial-ratios",
-    title: "Mastering Financial Ratios",
+    slug: "financial-planning-101",
+    title: "Financial Planning 101",
     short:
-      "Explore key financial ratios that help in assessing company performance, liquidity, and profitability...",
+      "A step-by-step introduction to financial priorities, investment accounts, taxes, and which accounts to use for your short- and long-term goals...",
     content: `
-# Mastering Financial Ratios
+# Financial Planning 101
 
-Financial ratios provide a powerful way to interpret a company's performance, stability, and long-term potential. Mastering them helps investors, analysts, and advisors make data-driven decisions.
+Many young persons may view planning for retirement as something to consider when they're closer to their middle ages, or when they have the "dream job" or have "settled down." This is a common mistake that will cost you YEARS of potential investment returns that you will NEVER get back.
 
----
+When planning for the future, **time** is by and large the most valuable asset at one's disposal. Organizing your finances as a youthful individual is also incredibly simple, and can be *done yourself*.
 
-## 1. Liquidity Ratios: Can the Company Meet Short-Term Obligations?
-
-Liquidity ratios show how well a company can pay off its current debts.
-
-### Key ratios:
-- **Current Ratio** — Measures short-term financial strength  
-- **Quick Ratio** — Measures ability to cover liabilities without inventory  
-- **Cash Ratio** — Measures pure cash coverage capability  
-
-Higher liquidity means the company can handle downturns more effectively.
+Make sure that your financial "house" is in order before devising a plan to save and invest your cash to fund your future goals. As a young person, there are not many hoops to jump through, but there are certain items to address in order to prevent a financial catastrophe and to ensure you maximize your money's potential.
 
 ---
 
-## 2. Profitability Ratios: Is the Business Generating Enough Returns?
+## Financial Priorities
 
-These ratios measure how effectively a company converts revenue into profit.
+<table class="w-full border border-gray-300 text-[15px] mt-4 mb-8 border-collapse">
+  <thead>
+    <tr class="bg-gray-50">
+      <th class="border border-gray-300 px-4 py-2 text-left font-semibold">Priority</th>
+      <th class="border border-gray-300 px-4 py-2 text-left font-semibold">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="border border-gray-300 px-4 py-3 align-top font-semibold">
+        1. Stable Income
+      </td>
+      <td class="border border-gray-300 px-4 py-3 align-top">
+        This may seem obvious, but it is a requirement in order to meet many of the other necessities below.
+      </td>
+    </tr>
+    <tr>
+      <td class="border border-gray-300 px-4 py-3 align-top font-semibold">
+        2. Establish Emergency Fund
+      </td>
+      <td class="border border-gray-300 px-4 py-3 align-top">
+        Set aside 3-months of living expenses in a safe place (checking/savings, low-risk investments, etc.).
+      </td>
+    </tr>
+    <tr>
+      <td class="border border-gray-300 px-4 py-3 align-top font-semibold">
+        3. “Bad Debt” Free
+      </td>
+      <td class="border border-gray-300 px-4 py-3 align-top">
+        Credit cards, car payments, other debt with a high interest rate (&gt;7%).
+      </td>
+    </tr>
+    <tr>
+      <td class="border border-gray-300 px-4 py-3 align-top font-semibold">
+        4. Invest!
+      </td>
+      <td class="border border-gray-300 px-4 py-3 align-top">
+        <ol class="list-decimal pl-5 space-y-1">
+          <li>
+            Employer-sponsored accounts (401k, 403b, etc.), at least
+            <span class="italic"> maximize any matching contributions</span>.
+          </li>
+          <li>Roth IRA, HSA.</li>
+          <li>Non-retirement accounts.</li>
+        </ol>
+      </td>
+    </tr>
+    <tr>
+      <td class="border border-gray-300 px-4 py-3 align-top font-semibold">
+        5. Insurance Coverage
+      </td>
+      <td class="border border-gray-300 px-4 py-3 align-top">
+        Insure properly:
+        <ul class="list-disc pl-5 mt-2 space-y-1">
+          <li>Disability Insurance (if not provided by employer)</li>
+          <li>Life Insurance (IF you have dependents)</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-### Important ratios:
-- **Net Profit Margin**  
-- **Return on Assets (ROA)**  
-- **Return on Equity (ROE)**  
-- **Gross Profit Margin**  
 
-Strong profitability indicates efficient operations and strong market positioning.
+## Investment Accounts
+
+The most common type of investment accounts available to the average investor includes Employer-sponsored plans (401k, 403b, etc.), Individual Retirement Accounts (Roth IRA, Traditional IRA, etc.), and investment accounts (Non-retirement accounts).
+
+### Employer-sponsored Retirement plans
+
+**Employer-sponsored Retirement plans:** These plans are the most commonly available to US employees by and large. Defined contribution plans are predominantly **Pre-tax/Traditional** (monies taxed when withdrawn, ideally in retirement) or **After-tax/Roth** (monies taxed now, growing tax-free for your lifetime) and allow for employees to contribute a maximum of \$24,500 (2026) each year, along with the employer being able (*though may not be required*) to **contribute** a percentage of an employee's salary into the account.
+
+How does one "invest" in their employer-sponsored plan? This depends on the custodian your employer has elected to **oversee** employee accounts. I stress the word "oversee" as it is purely the responsibility of the employee to manage their own investments in the account, the plan provider is simply the custodian of employee accounts.
+
+Many employers will use Vanguard, Fidelity, Charles Schwab, and others to custody their company's plan. Depending on how much your employer is willing to spend, a predetermined list of investments will be available to choose from ("investment options").
+
+The information discussed above is more than enough for most people to be aware of, but the details can be viewed in greater depth here.
+
+![Pre-tax Defined Contribution Plan](/pre-tax-defined-contribution-plan.png)
+
+![Roth Defined Contribution Plan](/roth-defined-contribution-plan.png)
 
 ---
 
-## 3. Leverage Ratios: How Much Debt Does the Company Use?
+## Individual Retirement Accounts (IRAs)
 
-Leverage ratios show how aggressively a company borrows.
+**Individual Retirement Accounts (IRAs):**
 
-### Watch for:
-- **Debt-to-Equity Ratio**  
-- **Interest Coverage Ratio**  
-- **Debt-to-Assets Ratio**  
+**IRAs (Traditional or Roth):** Individual Retirement Accounts are *self-funded* retirement accounts, with no affiliation to an employer-sponsored account. IRAs are *individual*, meaning they are not "joint" accounts owned by two or more persons. All that is required in order to contribute funds to an IRA is to have "earned income." If single, you must earn an equal amount of taxable income that is contributed, spouses may contribute for each other if one is not working. Certain income amounts will phase out an individual or couple from contributing to an IRA, view the details here.
 
-Higher leverage means higher risk — but also higher growth potential if managed well.
+**Roth IRA (The tax-free individual retirement account):** Roths are arguably the most efficient retirement account that an individual can contribute to, especially a young person. This is primarily due to benefitting from decades of *tax-free* compounding growth inside an investment account.
 
----
+As an individual naturally progresses in their career, so will their income and as a result, the rate at which they will be expected to pay taxes. The key to a Roth is to invest as much as possible into the account until the IRS no longer allows *direct* contributions, which is when a single person's income crosses over \$153,000 (2026) or a married couple surpasses \$242,000 of income. There are strategies to side-step this income limitation.
 
-## 4. Efficiency Ratios: How Effectively Are Resources Being Used?
+![Roth IRA](/roth-ira-diagram.png)
 
-Efficiency ratios help measure operational performance.
+**Benefits:**
 
-### Useful metrics:
-- **Asset Turnover Ratio**  
-- **Inventory Turnover Ratio**  
-- **Receivables Turnover Ratio**  
-
-These ratios highlight management efficiency and operational discipline.
+- The investment earnings in the account can be withdrawn completely tax free* in retirement (age 59 ½).  
+- Years of compounding interest on investment earnings.  
+- The Roth IRA can double as a "catastrophe fund," allowing for penalty-free withdrawals in the case of death, disability, unpaid medical expenses, and more.
 
 ---
 
-## Final Thoughts
+## Taxable Investment Accounts
 
-Understanding financial ratios helps you see beyond marketing language and into the real health of a company. Whether you're investing, advising clients, or comparing firms, ratio analysis is an essential tool.
+**Taxable Investment Accounts:** Some of the most notable benefits associated with these accounts are that no maximum annual contribution applies, no withdrawal penalties do either, and they can be jointly owned by 2 or more persons. The IRS allows this to take place as they will be able to collect taxes on profits gained in the account.
 
-    `
+There are limited tax-shelter benefits offered as opposed to those available with retirement accounts. The taxation of an investment account is slightly more complicated than is the case with retirement accounts, but it is still relatively straightforward. No tax is owed from the account until a "gain" occurs (or is realized) in excess of the amount originally invested. This "gain" can take on a few different forms, such as a capital gain, dividend, or distribution.
+
+### Capital Gains: Not all gains are created equal
+
+- **Short-term Capital Gains:** An investment is bought and sold (realized) within 1-year (<365 days). The gain on the investment will be taxed at the income tax rate the individual is subject to.
+
+  For example, if a single share of Microsoft (MSFT) is purchased at \$220 and sold within 1-year for \$300, taxes owed on that share of stock amount to the \$80 gain multiplied by the owner’s corresponding ordinary income tax rate.
+
+- **Long-term Capital Gains:** An investment is bought and sold (realized) outside of 1-year (>365 days). The gain on the investment will be taxed at the capital gains tax rate the individual is subject to. This is a separate bracket altogether from income tax rates, and the rates are much more favorable. This is the government's way of encouraging longer-term stock ownership, rather than gambling with the stock market (day trading).
+
+  For example, if a single share of Microsoft (MSFT) is purchased at \$220 and sold outside of 1-year for \$300, taxes owed on that share of stock amount to the \$80 gain multiplied by the owner’s corresponding capital gains tax rate.
+
+**Income:** Income generated within a taxable account is also subject to tax, this may be in the form of a dividend, distribution, or interest.
+
+- **Dividends:** Dividends are paid to shareholders as determined by a company’s board of directors. Dividends received from a US-based company are deemed “Qualified” and are subject to capital gains rates for taxation reasons, while foreign companies pay out “Non-Qualified” dividends and are subject to ordinary income tax rates.  
+- **Distributions:** These are cash payments received from an investment, typically paid out by a Mutual fund as a result of a sale taking place within the fund. The distribution will be characterized as a short-term (ordinary income) or a long-term (capital gains) distribution, depending on how long the securities were held.  
+- **Interest:** Income received from a checking/savings account, CD, or bond, is subject to ordinary income tax rates.
+
+![Taxable Account](/taxable-account-diagram.png)
+
+---
+
+## Which accounts should you utilize to fund your goals?
+
+**Short-term goals** (house down payment, emergency fund, additional savings, etc.):
+
+- Utilizing a taxable investment account may be your best bet. Withdrawing funds from a retirement account is not preferable as these funds are best used to capitalize on long-term growth for retirement, premature withdrawals will stunt their growth.  
+- In certain situations, a loan from your 401(k) may be an option to consider. Each plan will vary in its rules and regulations in allowing withdrawals, and should only be considered for smart purchases that will help grow your net worth (buying a house *may* be a good idea, but buying a car is likely NOT). Keep in mind a loan from your 401(k) is required to be paid with interest to avoid penalties, but the interest will essentially be used to pay yourself back. Ideally, loans from a retirement plan should probably be avoided.
+
+**Long-term goals:**
+
+- Tax-advantaged accounts are probably the best option to consider when planning for your long-term goals, which should include planning for retirement. The more you save, the more likely you are to accumulate wealth tax-efficiently and fund your financial independence.
+`,
   },
 
   // ======================= ARTICLE 3 =========================
   {
-    slug: "understanding-advisor-key-indicators",
-    title: "Understanding Advisor Key Indicators",
+    slug: "questions-to-ask-an-advisor",
+    title: "Going Beyond SEC Filings: Questions to Ask an Advisor",
     short:
-      "Explore the key indicators used to assess advisory firms—from compliance records to performance signals—and understand why each criterion matters...",
+      "Go beyond SEC filings and use smart questions about security, relationships, philosophy, and services to truly evaluate an advisor...",
     content: `
-# Understanding Advisor Key Indicators
+# Going Beyond SEC Filings: Questions to Ask an Advisor
 
-Evaluating advisory firms goes beyond basic service lists and fee schedules. Key performance and compliance indicators reveal the true professionalism and reliability of a firm.
+Evaluating advisory firms goes beyond basic service lists and fee schedules. Consider asking your advisor or prospective advisor these questions:
 
----
+## 1. Security
 
-## 1. Compliance Record & SEC Filing Accuracy
+Be sure your information and assets are in safe hands.
 
-A consistent and accurate filing history reflects strong compliance controls.
+**You should ask:**
 
-### You should check:
-- Missing or amended filings  
-- Consistency between Part 1 and Part 2  
-- Timely annual updates  
-- Past disciplinary actions  
+- How does the firm facilitate money transfers?
+- How are records kept secure?
+- How is sensitive information communicated effectively and securely?
 
----
+## 2. Client Retention & New Relationships
 
-## 2. Client Retention Rates
+High long-term client retention is one of the strongest indicators of advisor trust and satisfaction, and it is important to understand how an advisor evaluates if a prospect is a “good fit.”
 
-High long-term client retention is one of the strongest indicators of advisor trust and satisfaction.
+**You should ask:**
 
-### Why this matters:
-- Indicates strong communication  
-- Reflects long-term planning success  
-- Shows client confidence  
+- What stage of life is your typical client in?
+- Do you have a client niche?
+- What is the long term vision for the firm?
 
----
+## 3. Investment Philosophy
 
-## 3. Investment Performance Consistency
+Determine whether a firm’s philosophy pertaining to investment management fits your needs.
 
-Performance is not about beating the market — it's about consistency with stated strategy.
+**You should ask:**
 
-### Key insights:
-- Performance aligned with risk level  
-- Consistency, not volatility  
-- Avoiding style-drift  
-
----
+- What is your process for determining an investment recommendation?
+- Does your philosophy favor low-cost, passive investing?
+- Do alternative investments warrant inclusion in your recommendations?
+- Which benchmark(s) are used to ensure competitive market returns?
 
 ## 4. Operational Strength & Team Expertise
 
-Advisory firms with strong internal structure deliver more stable service.
+Advisory firms with strong internal structure may deliver consistent service.
 
-### Look at:
-- Advisor-to-client ratios  
-- Dedicated service teams  
-- Research capabilities  
-- Technology stack  
+**You should ask:**
 
----
+- What is the “Advisor-to-client” ratio?
+- Dedicated service team(s)?
+
+## 5. Services Provided
+
+Which financial planning services are ultimately provided.
+
+**You should ask:**
+
+- How are comprehensive financial planning services delivered? (Retirement Planning, Investments, Insurance, Tax Planning, Estate Planning)
+- Are ongoing services provided, outside of regular progress meeting(s)?
+- Meeting availability: In-person, virtual, both?
 
 ## Final Thoughts
 
-Advisor evaluation is about understanding real-world indicators that reveal quality, reliability, and trustworthiness beyond surface-level branding.
+Selecting the right financial advisor requires looking beyond surface-level credentials, fee schedules, and regulatory filings. The most meaningful insights often come from understanding how a firm operates, communicates, and aligns with its clients over time.
 
-    `
+By asking thoughtful questions about security, client relationships, investment philosophy, operational strength, and the scope of services provided, you gain a clearer picture of whether an advisory firm is built to support your long-term financial goals. These conversations reveal not only how an advisor manages money, but how they manage trust, accountability, and continuity.
+`,
   },
-
-  // ======================= ARTICLE 4 =========================
-  {
-    slug: "basics-of-firm-research",
-    title: "The Basics of Firm Research",
-    short:
-      "Get a simple introduction to researching businesses, including how to verify information, compare firms, and make informed decisions with confidence...",
-    content: `
-# The Basics of Firm Research
-
-Understanding how to properly research advisory firms helps you separate trustworthy professionals from risky or unqualified operators.
-
----
-
-## 1. Verify Registration & Licensing
-
-Always start with regulatory verification.
-
-Check:
-- SEC Registration  
-- State Registration  
-- Licensing Requirements  
-- ADV Filings  
-
----
-
-## 2. Compare Firm Structure & Services
-
-Every firm has a unique structure, client base, and service model.
-
-Look for:
-- Whether they serve individuals or corporate accounts  
-- Whether they offer holistic planning or investment-only services  
-- The ratio of advisors to clients  
-- Service customization levels  
-
----
-
-## 3. Evaluate Communication & Transparency
-
-Transparency builds trust.
-
-Ask yourself:
-- Do they clearly explain their fees?  
-- Do they provide real examples of client strategies?  
-- Do they avoid vague or overly complex language?  
-
----
-
-## 4. Check Client Feedback & Third-Party References
-
-Client satisfaction is a strong indicator of long-term trust.
-
-Sources include:
-- Verified client reviews  
-- Industry awards  
-- Peer recommendations  
-- Professional memberships  
-
----
-
-## Conclusion
-
-By following a structured research approach, you can confidently evaluate any advisory firm and make informed decisions backed by regulatory data, transparency, and professional expertise.
-
-    `
-  }
 ];
