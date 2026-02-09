@@ -40,9 +40,19 @@ export default function Navbar() {
       <nav className='w-full bg-white shadow-sm sticky top-0 z-[99999]'>
         <div className='mx-auto px-4 md:px-32 py-3 flex items-center justify-between'>
           {/* LOGO */}
-          <Link href='/' className='text-[20px] font-semibold text-gray-800'>
-            Advisory Evaluate
-          </Link>
+
+          <div className='flex justify-center items-center gap-2.5'>
+            <Image
+              className='rounded-xl'
+              alt=''
+              width={34}
+              height={34}
+              src='/logo.jpg'
+            />
+            <Link href='/' className='text-[20px] font-semibold text-gray-800'>
+              Advisory Evaluate
+            </Link>
+          </div>
 
           {/* DESKTOP MENU */}
           <div className='hidden md:flex items-center gap-8 text-[15px]'>
