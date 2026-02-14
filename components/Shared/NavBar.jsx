@@ -50,7 +50,7 @@ export default function Navbar() {
               src='/logo.jpg'
             />
             <Link href='/' className='text-[20px] font-semibold text-gray-800'>
-              Advisory Evaluate
+              Advisor Evaluate
             </Link>
           </div>
 

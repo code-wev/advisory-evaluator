@@ -19,7 +19,7 @@ export default function Footer() {
               src='/logo.jpg'
             />
 
-            <span className='text-[22px] font-medium'>Advisory Evaluate</span>
+            <span className='text-[22px] font-medium'>Advisor Evaluate</span>
           </div>
 
           <p className='text-[14px] leading-[1.7] text-white/80 max-w-xs'>
